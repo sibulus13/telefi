@@ -127,11 +127,17 @@ tail -3 "$TELEFI_HOME/conversation.jsonl"   # both directions, in order
 tail -1 "$TELEFI_HOME/inbox.jsonl"          # your reply and what the sink returned
 ```
 
-## Run it as a service
+## Run it in the background (optional)
 
-- Windows 11 (verified): `powershell -NoProfile -File scripts/setup_hub_schedule.ps1` registers a
-  hidden scheduled task, restarted every 5 minutes if it stops.
+The hub is one long-running command, `python -m telefi serve`: run it under whatever you already
+use to keep processes alive. Two ready-made examples:
+
+- Windows 11 (verified): `powershell -NoProfile -File examples/windows-service.ps1` registers a
+  scheduled task running `pythonw.exe -m telefi serve` (no console window), restarted every 5
+  minutes if it stops.
 - Linux (untested): `examples/telefi.service` (systemd user unit).
+
+Command sinks run in the hub's working directory, so give them absolute paths (or `cwd`).
 
 ## Send from your program
 
@@ -161,7 +167,7 @@ through a command sink (`examples/echo_sink.py`) or a queue folder (`examples/qu
 | `examples/inbound.example.json` | what your program receives |
 | `examples/echo_sink.py`, `examples/queue_drain.py` | the two kinds of reply handler |
 | `examples/publish.mjs` | publishing from Node |
-| `examples/telefi.service`, `scripts/setup_hub_schedule.ps1` | running as a service |
+| `examples/windows-service.ps1`, `examples/telefi.service` | running in the background (optional) |
 
 ## Reference
 

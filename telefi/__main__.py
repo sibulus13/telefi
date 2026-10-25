@@ -72,7 +72,8 @@ def _serve(interval: float) -> int:
 
 
 def main(argv=None) -> int:
-    sys.stdout.reconfigure(encoding="utf-8")       # Windows consoles default to cp1252
+    if sys.stdout is not None:                    # None under pythonw.exe (no console)
+        sys.stdout.reconfigure(encoding="utf-8")   # Windows consoles default to cp1252
     ap = argparse.ArgumentParser(prog="python -m telefi")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("drain")
