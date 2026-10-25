@@ -1,0 +1,70 @@
+{
+  "$id": "telefi.commands.v1",
+  "title": "An app's Telegram commands (one manifest per app, owned by the app's repo)",
+  "description": "Every command is '/<app> <verb> [args]'. The hub lists manifests in /help and /list, puts each app in Telegram's '/' menu, and routes '/<app> <verb>' to the app's sink.",
+  "type": "object",
+  "required": [
+    "schema",
+    "app",
+    "summary",
+    "sink",
+    "commands"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "type": "string",
+      "enum": [
+        "telefi.commands.v1",
+        "notifly.commands.v1"
+      ],
+      "description": "telefi.* is current; notifly.* is accepted while producers migrate"
+    },
+    "app": {
+      "type": "string",
+      "maxLength": 24,
+      "description": "the command word: lowercase letters, digits, underscore"
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "sink": {
+      "type": "string",
+      "maxLength": 24,
+      "description": "the hub_config inbound sink that receives this app's commands"
+    },
+    "commands": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": [
+          "verb",
+          "usage",
+          "summary"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "verb": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "usage": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "legacy_text": {
+            "type": "string",
+            "maxLength": 40,
+            "description": "for an app that parses its old bare command: the hub forwards '/<app> <verb> x' as '<legacy_text> x'"
+          }
+        }
+      }
+    }
+  }
+}

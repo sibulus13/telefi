@@ -1,0 +1,24 @@
+{
+  "schema": "telefi.commands.v1",
+  "app": "ci",
+  "summary": "example CI app",
+  "sink": "ci",
+  "commands": [
+    {
+      "verb": "retry",
+      "usage": "/ci retry <job> [note]",
+      "summary": "re-run a job, optionally with a note"
+    },
+    {
+      "verb": "status",
+      "usage": "/ci status",
+      "summary": "what is running"
+    },
+    {
+      "verb": "legacy",
+      "usage": "/ci legacy",
+      "summary": "forwarded to an older bot handler as /oldstatus",
+      "legacy_text": "/oldstatus"
+    }
+  ]
+}

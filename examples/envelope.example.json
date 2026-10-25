@@ -1,0 +1,50 @@
+{
+  "schema": "telefi.envelope.v1",
+  "id": "ci-0123456789ab",
+  "source": "ci",
+  "kind": "failure",
+  "severity": "error",
+  "title": "Build #43 failed",
+  "insight": "Tests passed; the deploy step timed out.",
+  "body": "step deploy: timeout after 600s\nlast log line: waiting for health check",
+  "evidence": {
+    "ref": "run 43",
+    "log_path": "/var/log/ci/43.log",
+    "links": [
+      {
+        "label": "Run #43",
+        "url": "https://ci.example.com/runs/43"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "id": "ack",
+      "label": "Ack",
+      "namespace": "hub"
+    },
+    {
+      "id": "retry",
+      "label": "Retry",
+      "namespace": "ci",
+      "payload": {
+        "job": 43
+      }
+    },
+    {
+      "id": "retry_note",
+      "label": "Retry with note",
+      "namespace": "ci",
+      "payload": {
+        "job": 43
+      },
+      "input": {
+        "prompt": "What should the retry do differently?"
+      }
+    }
+  ],
+  "dedup_key": "ci:build:43",
+  "dedup_window_min": 60,
+  "not_before": "2026-10-25T23:00:00+00:00",
+  "created_at": "2026-10-25T22:55:00+00:00"
+}

@@ -1,0 +1,3 @@
+# TeleFi has NO runtime dependencies: it uses only the Python standard library.
+# Verified 2026-10-25 by a clean-venv install on Windows 11 (build 26200), Python 3.12.4.
+# Install TeleFi itself with:  pip install -e .

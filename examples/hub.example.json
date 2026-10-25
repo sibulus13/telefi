@@ -1,0 +1,93 @@
+{
+  "schema": "telefi.hub_config.v1",
+  "mode": "live",
+  "dedup_window_min": 360,
+  "logs": {
+    "max_bytes": 10485760,
+    "rotate_at": 0.9,
+    "keep": 3
+  },
+  "channels": {
+    "telegram": {
+      "type": "telegram",
+      "token_env": "TELEGRAM_BOT_TOKEN",
+      "chat_env": "TELEGRAM_CHAT_ID"
+    },
+    "file": {
+      "type": "file",
+      "path": "bell.jsonl"
+    },
+    "mock": {
+      "type": "mock"
+    }
+  },
+  "routes": [
+    {
+      "match": {
+        "severity": [
+          "error",
+          "critical"
+        ]
+      },
+      "channels": [
+        "telegram",
+        "file"
+      ]
+    },
+    {
+      "match": {
+        "kind": [
+          "blocker",
+          "review",
+          "result"
+        ]
+      },
+      "channels": [
+        "telegram",
+        "file"
+      ]
+    },
+    {
+      "match": {
+        "source": [
+          "experiments"
+        ]
+      },
+      "channels": [
+        "mock"
+      ]
+    },
+    {
+      "match": {},
+      "channels": [
+        "file"
+      ]
+    }
+  ],
+  "inbound": {
+    "enabled": true,
+    "channel": "telegram",
+    "ack_days": 7,
+    "manifests": [
+      "examples/commands.example.json"
+    ],
+    "commands": {},
+    "sinks": {
+      "ci": {
+        "type": "command",
+        "argv": [
+          "python",
+          "examples/echo_sink.py"
+        ],
+        "cwd": ".",
+        "timeout_s": 60
+      },
+      "jobs": {
+        "type": "queue"
+      },
+      "*": {
+        "type": "queue"
+      }
+    }
+  }
+}

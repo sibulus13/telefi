@@ -1,0 +1,10 @@
+{
+  "schema": "telefi.hub_config.v1",
+  "mode": "live",
+  "channels": {
+    "telegram": {"type": "telegram", "token_env": "TELEGRAM_BOT_TOKEN", "chat_env": "TELEGRAM_CHAT_ID"}
+  },
+  "routes": [
+    {"match": {}, "channels": ["telegram"]}
+  ]
+}

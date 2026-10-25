@@ -1,0 +1,13 @@
+# systemd user unit: ~/.config/systemd/user/telefi.service
+# systemctl --user daemon-reload && systemctl --user enable --now telefi
+[Unit]
+Description=TeleFi hub (deliver + two-way Telegram)
+
+[Service]
+EnvironmentFile=%h/.telefi/env
+ExecStart=/usr/bin/env python3 -m telefi serve
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

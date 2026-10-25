@@ -1,0 +1,78 @@
+{
+  "$id": "telefi.inbound.v1",
+  "title": "Inbound event (owner -> a producer), normalized from any two-way channel",
+  "description": "A button tap or a typed command. The hub writes it to the sink configured for its namespace: a queue directory the producer drains, or a command (e.g. an agent run, a CI CLI call) that receives this JSON on stdin.",
+  "type": "object",
+  "required": [
+    "schema",
+    "id",
+    "kind",
+    "namespace",
+    "channel",
+    "at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "type": "string",
+      "enum": [
+        "telefi.inbound.v1",
+        "notifly.inbound.v1"
+      ],
+      "description": "telefi.* is current; notifly.* is accepted while producers migrate"
+    },
+    "id": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "action",
+        "command",
+        "legacy"
+      ]
+    },
+    "namespace": {
+      "type": "string",
+      "maxLength": 24
+    },
+    "action_id": {
+      "type": "string",
+      "maxLength": 24
+    },
+    "command": {
+      "type": "string",
+      "maxLength": 40,
+      "description": "for kind=command: the word after '/', e.g. status"
+    },
+    "args": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "maxItems": 10
+    },
+    "envelope_id": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "for kind=action: the message the button was on"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "channel": {
+      "type": "string",
+      "maxLength": 24
+    },
+    "at": {
+      "type": "string",
+      "maxLength": 40
+    },
+    "raw": {
+      "type": "object",
+      "description": "the channel's original update, for a legacy sink that handles it itself"
+    }
+  }
+}

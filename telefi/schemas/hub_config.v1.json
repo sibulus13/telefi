@@ -1,0 +1,193 @@
+{
+  "$id": "telefi.hub_config.v1",
+  "title": "Hub configuration: channels, routing rules, inbound sinks",
+  "type": "object",
+  "required": [
+    "schema",
+    "mode",
+    "channels",
+    "routes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "type": "string",
+      "enum": [
+        "telefi.hub_config.v1",
+        "notifly.hub_config.v1"
+      ],
+      "description": "telefi.* is current; notifly.* is accepted while producers migrate"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "live",
+        "mock"
+      ],
+      "description": "mock: every channel is replaced by the mock adapter (records, never sends)"
+    },
+    "spool": {
+      "type": "string",
+      "description": "spool root, relative to TELEFI_HOME unless absolute; default 'spool' (env TELEFI_SPOOL overrides)"
+    },
+    "dedup_window_min": {
+      "type": "number"
+    },
+    "channels": {
+      "type": "object",
+      "description": "name -> adapter config",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "telegram",
+              "file",
+              "mock"
+            ]
+          },
+          "token_env": {
+            "type": "string"
+          },
+          "chat_env": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string",
+            "description": "file channel: relative to TELEFI_HOME unless absolute"
+          }
+        }
+      }
+    },
+    "routes": {
+      "type": "array",
+      "description": "first match wins; match keys are lists (any-of); an empty match is the default",
+      "items": {
+        "type": "object",
+        "required": [
+          "match",
+          "channels"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "match": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "source": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "kind": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "severity": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "inbound": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "read replies (long-poll getUpdates); keep false while another process polls the same bot"
+        },
+        "channel": {
+          "type": "string"
+        },
+        "sinks": {
+          "type": "object",
+          "description": "namespace -> sink; '*' is the fallback",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "queue",
+                  "command"
+                ]
+              },
+              "argv": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "command sink: argv; the inbound JSON arrives on stdin"
+              },
+              "timeout_s": {
+                "type": "number"
+              },
+              "cwd": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "commands": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "hub-owned command word -> namespace, e.g. retry -> ci. Any other /command and any button not made by the hub goes to the 'legacy' sink with the raw update."
+        },
+        "ack_days": {
+          "type": "number",
+          "description": "an acked dedup_key is not re-delivered for this many days"
+        },
+        "manifests": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "paths of commands.v1 manifests, one per app; /help, /list and /<app> <verb> routing come from them"
+        }
+      }
+    },
+    "logs": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "rotation of the jsonl records and hub.log",
+      "properties": {
+        "max_bytes": {
+          "type": "number",
+          "description": "a log is full at this size (default 10 MB)"
+        },
+        "rotate_at": {
+          "type": "number",
+          "description": "rotate at this fraction of max_bytes, the safety margin (default 0.9)"
+        },
+        "keep": {
+          "type": "number",
+          "description": "rotated files kept: name.1 ... name.N (default 3)"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "telefi.inbound.v1",
+  "id": "tg-587283814",
+  "kind": "action",
+  "namespace": "ci",
+  "action_id": "retry_note",
+  "envelope_id": "ci-0123456789ab",
+  "payload": {
+    "job": 43,
+    "note": "use the staging database"
+  },
+  "channel": "telegram",
+  "at": "2026-10-25T23:05:12+00:00"
+}

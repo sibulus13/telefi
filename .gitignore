@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.venv/
+venv/
+*.tmp
+*.bak
+*.lock
+.try/
+
+# Local configuration and runtime state: never commit (examples/ holds the templates)
+.env
+.env.*
+!examples/.env.example
+hub.json
+*.jsonl
+spool/
+.telefi/

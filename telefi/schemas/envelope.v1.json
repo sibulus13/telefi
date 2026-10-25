@@ -1,0 +1,173 @@
+{
+  "$id": "telefi.envelope.v1",
+  "title": "Outbound message envelope (any producer -> the hub)",
+  "description": "What a producer (a CI system, a scheduler, a research job, ...) publishes. Drop it as one JSON file in <spool>/out/. The hub routes it to channels by config, renders it per channel, and logs every delivery.",
+  "type": "object",
+  "required": [
+    "schema",
+    "id",
+    "source",
+    "kind",
+    "severity",
+    "title",
+    "created_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "type": "string",
+      "enum": [
+        "telefi.envelope.v1",
+        "notifly.envelope.v1"
+      ],
+      "description": "telefi.* is current; notifly.* is accepted while producers migrate"
+    },
+    "id": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "unique per message; the spool file is <id>.json"
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 40,
+      "description": "producing system, e.g. ci, scheduler, research"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "failure",
+        "blocker",
+        "review",
+        "digest",
+        "result",
+        "info"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warn",
+        "error",
+        "critical"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "the headline: what happened, one line (aim for <= 90 chars)"
+    },
+    "body": {
+      "type": "string",
+      "maxLength": 3500,
+      "description": "details; collapsed by default (expandable quote)"
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "what an investigator needs, shown under the body",
+      "properties": {
+        "ref": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "e.g. a run id, issue number, task name"
+        },
+        "log_path": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "links": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "required": [
+              "label",
+              "url"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "label": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "url": {
+                "type": "string",
+                "maxLength": 2048
+              }
+            }
+          },
+          "description": "rendered as buttons that open the URL (no inbound needed)"
+        }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "maxItems": 6,
+      "description": "buttons; a tap becomes an inbound.v1 event routed to `namespace`'s sink",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "namespace"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "namespace": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "payload": {
+            "type": "object"
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "prompt"
+            ],
+            "properties": {
+              "prompt": {
+                "type": "string",
+                "maxLength": 200
+              }
+            },
+            "description": "ask the owner for free text first (ForceReply); the reply arrives as payload.note"
+          }
+        }
+      }
+    },
+    "dedup_key": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "same key inside the dedup window = delivered once"
+    },
+    "created_at": {
+      "type": "string",
+      "maxLength": 40
+    },
+    "insight": {
+      "type": "string",
+      "maxLength": 300,
+      "description": "the one-line 'so what': why it matters or what to do next. Shown under the headline."
+    },
+    "not_before": {
+      "type": "string",
+      "maxLength": 40,
+      "description": "ISO time; the hub holds the message until then (a grace period for an automated fix)"
+    },
+    "dedup_window_min": {
+      "type": "number",
+      "description": "this message's dedup window; default: the hub's dedup_window_min"
+    }
+  }
+}
