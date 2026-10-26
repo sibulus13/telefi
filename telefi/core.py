@@ -1,14 +1,14 @@
 """TeleFi core: config, publish, route, drain, the local record.
 
     spool/out/<id>.json      published, not yet delivered
-    spool/done/<id>.json     delivered (or deduplicated / acknowledged)
-    spool/failed/<id>.json   rejected (schema) -- with a sibling <id>.error.txt
+    spool/done/<id>.json     delivered (or deduplicated / acknowledged); pruned after 7 days
+    spool/failed/<id>.json   rejected (schema) or undeliverable after retries, with <id>.error.txt
     spool/in/<namespace>/    inbound events for a namespace's queue sink
-    spool/state/             acks.json, pending_prompts.json, telegram_offset.txt
+    spool/state/             acks.json, attempts.json, pending_prompts.json, telegram.json
     outbox.jsonl             one line per envelope: the envelope + every channel's delivery result
     inbox.jsonl              one line per inbound event and where it went
 
-Design: docs/HUB_DESIGN.md. Contracts: telefi/schemas/*.json. Format: render.py. Rotation: logs.py.
+Design: docs/DESIGN.md. Contracts: telefi/schemas/*.json. Format: render.py. Rotation: logs.py.
 """
 from __future__ import annotations
 
@@ -26,6 +26,10 @@ HOME = Path(os.environ.get("TELEFI_HOME") or os.environ.get("NOTIFLY_HOME") or P
 CONFIG_PATH = HOME / "hub.json"
 OUTBOX_SCAN_LINES = 5000
 DEFAULT_ACK_DAYS = 7
+DONE_RETENTION_DAYS = 7
+MAX_DELIVERY_ATTEMPTS = 10        # with backoff 30 s .. 1 h, about 6 hours of retrying
+RETRY_BASE_S = 30
+RETRY_MAX_S = 3600
 
 DEFAULT_CONFIG: dict = {
     "schema": "telefi.hub_config.v1",
@@ -46,8 +50,7 @@ DEFAULT_CONFIG: dict = {
 }
 
 
-def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+now_iso = logs.now_iso
 
 
 def load_config(path: Path = CONFIG_PATH) -> dict:
@@ -189,15 +192,50 @@ def _ago(minutes: float) -> str:
     return (datetime.now(timezone.utc) - timedelta(minutes=minutes)).isoformat(timespec="seconds")
 
 
+def _when(raw: str) -> datetime | None:
+    """An ISO time in any offset -> aware UTC datetime (a naive one is read as UTC); None if invalid."""
+    try:
+        t = datetime.fromisoformat(raw)
+    except (TypeError, ValueError):
+        return None
+    return (t if t.tzinfo else t.replace(tzinfo=timezone.utc)).astimezone(timezone.utc)
+
+
+def _move(p: Path, folder: Path) -> None:
+    folder.mkdir(parents=True, exist_ok=True)
+    os.replace(p, folder / p.name)
+
+
+def _quarantine(p: Path, root: Path, reasons: list[str]) -> None:
+    _move(p, root / "failed")
+    (root / "failed" / f"{p.stem}.error.txt").write_text("\n".join(reasons), encoding="utf-8")
+
+
+def prune_done(root: Path, *, days: float = DONE_RETENTION_DAYS) -> int:
+    """Delete delivered envelopes older than `days` (their record stays in outbox.jsonl)."""
+    cutoff = datetime.now(timezone.utc).timestamp() - days * 86400
+    n = 0
+    for p in (root / "done").glob("*.json"):
+        if p.stat().st_mtime < cutoff:
+            p.unlink(missing_ok=True)
+            n += 1
+    return n
+
+
 def drain(cfg: dict, *, adapters: dict | None = None, spool: Path | None = None) -> list[dict]:
-    """Deliver every envelope in <spool>/out. Returns the outbox records written."""
+    """Deliver every due envelope in <spool>/out. Returns the outbox records written.
+
+    A delivery that reaches no channel is retried with exponential backoff (state/attempts.json)
+    and quarantined in failed/ after MAX_DELIVERY_ATTEMPTS, so a Telegram outage never loses a
+    message. Every attempt is recorded in outbox.jsonl."""
     root = spool or spool_root(cfg)
     adapters = adapters if adapters is not None else build_adapters(cfg, resolve=resolve)
     inbound = cfg.get("inbound", {})
     buttons = bool(inbound.get("enabled"))
     last = _last_delivered(root)
     acked = _acked(root, inbound.get("ack_days", DEFAULT_ACK_DAYS))
-    now = now_iso()
+    attempts = read_state(root, "attempts.json")
+    now = datetime.now(timezone.utc)
     records = []
     for p in sorted((root / "out").glob("*.json")):
         try:
@@ -207,18 +245,23 @@ def drain(cfg: dict, *, adapters: dict | None = None, spool: Path | None = None)
             continue
         except ValueError as ex:
             env, bad = {"id": p.stem}, [f"unreadable JSON: {ex}"]
-        if not bad and env.get("not_before", "") > now:  # held: a grace period is still running
-            continue
+        if not bad and env.get("not_before") and _when(env["not_before"]) is None:
+            bad = [f"$.not_before: {env['not_before']!r} is not an ISO time"]
+        if not bad and env.get("not_before") and _when(env["not_before"]) > now:
+            continue                                    # held: a grace period is still running
+        retry = attempts.get(p.stem)
+        if retry and (_when(retry["next"]) or now) > now:
+            continue                                    # backing off after a failed delivery
         key = env.get("dedup_key")
         window = env.get("dedup_window_min", cfg.get("dedup_window_min", 360))
         if bad:
-            (root / "failed").mkdir(parents=True, exist_ok=True)
-            os.replace(p, root / "failed" / p.name)
-            (root / "failed" / f"{p.stem}.error.txt").write_text("\n".join(bad), encoding="utf-8")
+            _quarantine(p, root, bad)
             rec = {"at": now_iso(), "envelope": env, "rejected": bad, "deliveries": []}
         elif key in acked:
+            _move(p, root / "done")
             rec = {"at": now_iso(), "envelope": env, "acknowledged": True, "deliveries": []}
         elif key and last.get(key, "") >= _ago(window):
+            _move(p, root / "done")
             rec = {"at": now_iso(), "envelope": env, "deduplicated": True, "deliveries": []}
         else:
             deliveries = []
@@ -227,11 +270,22 @@ def drain(cfg: dict, *, adapters: dict | None = None, spool: Path | None = None)
                 res = a.send(env, buttons=buttons) if a else {"ok": False, "error": f"no channel named {name}"}
                 deliveries.append({"channel": name, **res})
             rec = {"at": now_iso(), "envelope": env, "deliveries": deliveries}
-            if key and any(d["ok"] for d in deliveries):
-                last[key] = rec["at"]
-        if not bad:
-            (root / "done").mkdir(parents=True, exist_ok=True)
-            os.replace(p, root / "done" / p.name)
+            if not deliveries or any(d["ok"] for d in deliveries):
+                _move(p, root / "done")
+                attempts.pop(p.stem, None)
+                if key and deliveries:
+                    last[key] = rec["at"]
+            else:
+                n = (retry or {}).get("n", 0) + 1
+                if n >= MAX_DELIVERY_ATTEMPTS:
+                    _quarantine(p, root, [f"{n} delivery attempts failed: {d['channel']}: {d['error']}" for d in deliveries])
+                    attempts.pop(p.stem, None)
+                    rec["gave_up"] = n
+                else:
+                    wait = min(RETRY_BASE_S * 2 ** (n - 1), RETRY_MAX_S)
+                    attempts[p.stem] = {"n": n, "next": (now + timedelta(seconds=wait)).isoformat(timespec="seconds")}
+                    rec["retry_in_s"] = wait
         append_jsonl(outbox_path(root), rec)
         records.append(rec)
+    write_state(root, "attempts.json", attempts)
     return records

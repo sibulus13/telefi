@@ -6,6 +6,7 @@ The JSON Schema files ARE the interface other services adopt: a producer in any 
 from __future__ import annotations
 
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 
@@ -21,8 +22,10 @@ def load(name: str) -> dict:
 
 
 def errors(obj: object, schema: dict, path: str = "$") -> list[str]:
-    """Violations of type/required/enum/maxLength/maxItems/properties/additionalProperties/items."""
+    """Violations of type/required/enum/pattern/maxLength/maxItems/properties/additionalProperties/items."""
     out: list[str] = []
+    if isinstance(obj, str) and "pattern" in schema and not re.search(schema["pattern"], obj):
+        out.append(f"{path}: {obj[:60]!r} does not match {schema['pattern']}")
     t = schema.get("type")
     if t == "number":
         if not isinstance(obj, (int, float)) or isinstance(obj, bool):

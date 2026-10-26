@@ -8,10 +8,10 @@ import json
 import os
 import urllib.request
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
+from telefi import logs
 from telefi.render import render_telegram
 
 HTTP_TIMEOUT_S = 10
@@ -74,9 +74,7 @@ class FileAdapter:
     path: Path
 
     def send(self, env: dict, *, buttons: bool) -> dict:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        with self.path.open("a", encoding="utf-8") as f:
-            f.write(json.dumps({"at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "envelope": env}, ensure_ascii=False) + "\n")
+        logs.append(self.path, {"at": logs.now_iso(), "envelope": env})   # rotates like every record
         return {"ok": True, "error": None}
 
 

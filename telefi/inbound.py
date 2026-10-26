@@ -163,6 +163,7 @@ def handle_update(update: dict, cfg: dict, root: Path, *, tg: Callable, chat_id:
             if cq_id:
                 tg("answerCallbackQuery", {"callback_query_id": cq_id, "text": "This button has expired."})
             return {"outcome": "expired"}
+        ev["namespace"] = action["namespace"]             # trust the stored envelope, never the tapped data
         if action["id"] == ACK or action["namespace"] == HUB_NS:
             if env.get("dedup_key"):
                 core.ack(root, env["dedup_key"])
@@ -218,6 +219,8 @@ def poll_once(cfg: dict, *, root: Path | None = None, timeout_s: int = 50, opene
         return res
     offset = int(core.read_state(root, "telegram.json").get("offset", 0))
     res = telegram_call(token, "getUpdates", {"offset": offset, "timeout": timeout_s}, opener=opener, timeout=timeout_s + 10)
+    if not res["ok"]:                                     # raise, so serve backs off instead of spinning
+        raise RuntimeError(f"getUpdates failed: {res.get('error')}")
     n = 0
     for u in res.get("result") or []:
         msg = u.get("message") or (u.get("callback_query") or {}).get("message") or {}
@@ -228,10 +231,10 @@ def poll_once(cfg: dict, *, root: Path | None = None, timeout_s: int = 50, opene
         try:
             rec["outcome"] = handle_update(u, cfg, root, tg=tg, chat_id=chat, run=run).get("outcome")
             core.append_jsonl(talk, rec)
-        except Exception as ex:
-            core.append_jsonl(talk, {**rec, "outcome": "error", "error": f"{type(ex).__name__}: {ex}"[:300]})                           # one bad update must never stall the queue
-            core.append_jsonl(root.parent / "inbox.jsonl", {"at": core.now_iso(), "error": f"{type(ex).__name__}: {ex}"[:300],
-                                                            "update_id": u.get("update_id")})
+        except Exception as ex:                           # one bad update must never stall the queue
+            err = f"{type(ex).__name__}: {ex}"[:300]
+            core.append_jsonl(talk, {**rec, "outcome": "error", "error": err})
+            core.append_jsonl(root.parent / "inbox.jsonl", {"at": core.now_iso(), "error": err, "update_id": u.get("update_id")})
         core.write_state(root, "telegram.json", {"offset": u["update_id"] + 1})
         n += 1
     return n

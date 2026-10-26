@@ -23,7 +23,8 @@
     },
     "id": {
       "type": "string",
-      "maxLength": 64
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
     },
     "kind": {
       "type": "string",
@@ -35,7 +36,8 @@
     },
     "namespace": {
       "type": "string",
-      "maxLength": 24
+      "maxLength": 24,
+      "pattern": "^[a-z0-9_*-]+$"
     },
     "action_id": {
       "type": "string",

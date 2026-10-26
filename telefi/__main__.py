@@ -22,6 +22,8 @@ from telefi.render import render_plain
 from telefi.samples import samples
 
 SERVE_RETRY_S = 5
+SERVE_RETRY_MAX_S = 300
+PRUNE_EVERY_S = 3600
 
 
 def _preview(names: list[str], buttons: bool) -> int:
@@ -59,16 +61,24 @@ def _serve(interval: float) -> int:
     if cfg.get("inbound", {}).get("enabled"):
         menu = inbound.register_menu(cfg)
         core.append_jsonl(log, {"at": core.now_iso(), "event": "command menu", "ok": menu["ok"], "error": menu.get("error")})
+    failures, pruned_at = 0, 0.0
     while True:
         try:
             core.drain(cfg)
+            if time.monotonic() - pruned_at > PRUNE_EVERY_S:
+                core.prune_done(core.spool_root(cfg))
+                pruned_at = time.monotonic()
             if cfg.get("inbound", {}).get("enabled"):
                 inbound.poll_once(cfg, timeout_s=int(interval))
             else:
                 time.sleep(interval)
+            failures = 0
         except Exception:
-            core.append_jsonl(log, {"at": core.now_iso(), "event": "round failed", "error": traceback.format_exc()[-2000:]})
-            time.sleep(SERVE_RETRY_S)
+            failures += 1
+            wait = min(SERVE_RETRY_S * 2 ** (failures - 1), SERVE_RETRY_MAX_S)   # an outage never spins
+            core.append_jsonl(log, {"at": core.now_iso(), "event": "round failed", "retry_in_s": wait,
+                                    "error": traceback.format_exc()[-2000:]})
+            time.sleep(wait)
 
 
 def main(argv=None) -> int:

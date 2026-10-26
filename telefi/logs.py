@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 
 DEFAULT_MAX_BYTES = 10 * 1024 * 1024
@@ -16,6 +17,11 @@ DEFAULT_ROTATE_AT = 0.9
 DEFAULT_KEEP = 3
 
 POLICY = {"max_bytes": DEFAULT_MAX_BYTES, "rotate_at": DEFAULT_ROTATE_AT, "keep": DEFAULT_KEEP}
+
+
+def now_iso() -> str:
+    """UTC, seconds precision: every record and state timestamp uses this one format."""
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def configure(cfg: dict) -> None:

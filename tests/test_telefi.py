@@ -271,3 +271,59 @@ def test_every_example_file_meets_its_schema():
 def test_relative_config_paths_stay_inside_the_home(tmp_path, monkeypatch):
     monkeypatch.setattr(core, "HOME", tmp_path / "home")
     assert core.spool_root({"spool": "spool"}) == tmp_path / "home" / "spool"
+
+
+# ---------------------------------------------------------------- pre-release review regressions (2026-10-25)
+
+def test_an_undelivered_message_is_retried_not_lost_then_quarantined(root, monkeypatch):
+    env = samples()["job.failure"]
+    core.publish(env, spool=root)
+    down = {"telegram": MockAdapter("telegram", fail=True), "file": MockAdapter("file", fail=True)}
+    rec = core.drain(MOCK, adapters=down, spool=root)[0]
+    assert rec.get("retry_in_s") and (root / "out" / f"{env['id']}.json").exists()
+    monkeypatch.setattr(core, "MAX_DELIVERY_ATTEMPTS", 1)
+    core.write_state(root, "attempts.json", {})
+    core.drain(MOCK, adapters=down, spool=root)
+    assert (root / "failed" / f"{env['id']}.json").exists()
+
+
+def test_a_telegram_outage_does_not_spin_the_poll_loop(root, monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "t")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", CHAT)
+    def down(req, timeout=10):
+        raise OSError("network unreachable")
+    with pytest.raises(RuntimeError):
+        inbound.poll_once(_inbound_cfg(), root=root, opener=down)
+
+
+def test_ids_and_namespaces_cannot_escape_the_spool(root):
+    env = core.envelope(source="x", kind="info", severity="info", title="t")
+    with pytest.raises(ValueError):
+        core.publish({**env, "id": "../../evil"}, spool=root)
+    assert schema.validate({**samples()["ci.failure"], "actions": [{"id": "a", "label": "a", "namespace": "../x"}]}, "envelope.v1")
+
+
+def test_a_non_web_link_is_refused_before_it_can_break_delivery(root):
+    env = core.envelope(source="x", kind="info", severity="info", title="t",
+                        evidence={"links": [{"label": "bad", "url": "file:///etc/passwd"}]})
+    with pytest.raises(ValueError):
+        core.publish(env, spool=root)
+
+
+def test_a_hold_in_another_timezone_is_honoured(root):
+    from datetime import datetime, timedelta, timezone
+    later = (datetime.now(timezone(timedelta(hours=-7))) + timedelta(hours=1)).isoformat(timespec="seconds")
+    core.publish(core.envelope(source="x", kind="failure", severity="error", title="t", not_before=later), spool=root)
+    assert core.drain(MOCK, adapters={"telegram": MockAdapter("telegram"), "file": MockAdapter("file")}, spool=root) == []
+
+
+def test_a_forged_button_cannot_redirect_to_another_namespace(root):
+    env = samples()["ci.failure"]
+    _deliver(root, env)
+    seen = []
+    run = lambda argv, input, **kw: seen.append(argv[0]) or subprocess.CompletedProcess(argv, 0, "ok\n", "")
+    cfg = _inbound_cfg({"ci": {"type": "command", "argv": ["ci"]}, "evil": {"type": "command", "argv": ["evil"]}})
+    forged = {"update_id": 9, "callback_query": {"id": "q", "data": callback_data("evil", "retry", env["id"]),
+                                                 "message": {"chat": {"id": int(CHAT)}}}}
+    inbound.handle_update(forged, cfg, root, tg=FakeTG(), chat_id=CHAT, run=run)
+    assert seen == ["ci"]
