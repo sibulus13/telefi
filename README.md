@@ -9,14 +9,7 @@ records the delivery. You answer from your phone (a button, a typed note, a `/co
 hands your answer back to the program as a validated JSON event. Pure Python standard library:
 no runtime dependencies.
 
-```mermaid
-flowchart TD
-    P["your programs<br/>(any language)"] -->|"envelope JSON<br/>into spool/out/"| H["TeleFi hub"]
-    H --> T["your Telegram<br/>(glance-first message)"]
-    H --> L["local records<br/>outbox / inbox / conversation"]
-    T -->|"tap · reply · /command"| H
-    H -->|"inbound JSON<br/>to a queue or a command"| P
-```
+![TeleFi: programs drop envelope JSON into the spool; the hub sends it to Telegram, records it, and routes taps, replies and /commands back to the program](https://raw.githubusercontent.com/sibulus13/telefi/main/docs/images/architecture.svg)
 
 ## Why TeleFi
 

@@ -4,18 +4,24 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "telefi"
-version = "0.3.0"
+version = "0.3.1"
 description = "Telegram as a two-way control surface for scripts, CI and agents: drop a JSON envelope in a folder, get a readable message, and receive the owner's replies back as events."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Michael Huang" }]
-keywords = ["telegram", "two-way", "chatops", "human-in-the-loop", "notifications", "agents"]
+keywords = ["telegram", "telegram-bot", "two-way", "chatops", "human-in-the-loop", "notifications", "alerting",
+            "approval", "agents", "ai-agents", "agent-harness", "llm"]
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: Microsoft :: Windows :: Windows 11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Communications :: Chat",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: System :: Monitoring",
 ]
 # Runtime is pure standard library: no third-party dependencies.
 dependencies = []

@@ -1,0 +1,6 @@
+flowchart TD
+    P["your programs<br/>(any language)"] -->|"envelope JSON<br/>into spool/out/"| H["TeleFi hub"]
+    H --> T["your Telegram<br/>(glance-first message)"]
+    H --> L["local records<br/>outbox / inbox / conversation"]
+    T -->|"tap · reply · /command"| H
+    H -->|"inbound JSON<br/>to a queue or a command"| P
