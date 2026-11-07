@@ -1,0 +1,18 @@
+🟢 Autofix · <b>Fixed: stale cache key in Price Watch · merged</b>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "PR #51",
+    "url": "https://github.com/o/r/pull/51"
+   }
+  ],
+  [
+   {
+    "text": "Revert",
+    "callback_data": "h|autofix|revert|g-fix-merged"
+   }
+  ]
+ ]
+}

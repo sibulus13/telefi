@@ -1,0 +1,36 @@
+{
+ "timezone": "America/Los_Angeles",
+ "start": "2026-10-28T22:30",
+ "end": "+1 08:05",
+ "step_min": 1,
+ "arrivals": [
+  {
+   "at": "23:30",
+   "source": "builder",
+   "kind": "failure",
+   "severity": "critical",
+   "title": "Builder daemon is down"
+  },
+  {
+   "at": "23:30",
+   "source": "researcher",
+   "kind": "failure",
+   "severity": "error",
+   "title": "Researcher run failed (input refused)"
+  },
+  {
+   "at": "23:30",
+   "source": "research",
+   "kind": "blocker",
+   "severity": "warn",
+   "title": "#714 basket study needs tick data"
+  },
+  {
+   "at": "23:45",
+   "source": "research",
+   "kind": "result",
+   "severity": "info",
+   "title": "#712 ACME spread study: REFINE"
+  }
+ ]
+}

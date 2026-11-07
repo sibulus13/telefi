@@ -10,7 +10,10 @@ import re
 from functools import lru_cache
 from pathlib import Path
 
+from telefi import messages
+
 SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"
+TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 SCHEMAS = ("envelope.v1", "inbound.v1", "hub_config.v1", "commands.v1")
 
 _TYPES = {"object": dict, "array": list, "string": str, "boolean": bool}
@@ -22,7 +25,7 @@ def load(name: str) -> dict:
 
 
 def errors(obj: object, schema: dict, path: str = "$") -> list[str]:
-    """Violations of type/required/enum/pattern/maxLength/maxItems/properties/additionalProperties/items."""
+    """Violations of type/required/enum/pattern/maxLength/maxItems/minItems/properties/additionalProperties/items."""
     out: list[str] = []
     if isinstance(obj, str) and "pattern" in schema and not re.search(schema["pattern"], obj):
         out.append(f"{path}: {obj[:60]!r} does not match {schema['pattern']}")
@@ -39,6 +42,8 @@ def errors(obj: object, schema: dict, path: str = "$") -> list[str]:
     if isinstance(obj, list):
         if "maxItems" in schema and len(obj) > schema["maxItems"]:
             out.append(f"{path}: more than {schema['maxItems']} items")
+        if "minItems" in schema and len(obj) < schema["minItems"]:
+            out.append(f"{path}: fewer than {schema['minItems']} items")
         for i, item in enumerate(obj):
             out += errors(item, schema.get("items", {}), f"{path}[{i}]")
     if isinstance(obj, dict):
@@ -57,5 +62,30 @@ def errors(obj: object, schema: dict, path: str = "$") -> list[str]:
     return out
 
 
+@lru_cache(maxsize=None)
+def load_template(name: str) -> dict:
+    return json.loads((TEMPLATE_DIR / f"{name}.json").read_text(encoding="utf-8"))
+
+
+def template_errors(env: dict) -> list[str]:
+    """An envelope's `template` must be known and its `facts` valid for it (nothing is half-rendered)."""
+    name, facts = env.get("template"), env.get("facts")
+    if name is None and facts is None:
+        return []
+    if name is None:
+        return ["$: facts without a template"]
+    if name not in messages.TEMPLATES:
+        return [f"$.template: {name!r} is not one of {list(messages.TEMPLATES)}"]
+    if not isinstance(facts, dict):
+        return [f"$: template {name} needs facts"]
+    bad = errors(facts, load_template(name), "$.facts") or messages.extra_errors(name, facts)
+    if bad or not (isinstance(env.get("id"), str) and isinstance(env.get("source"), str)):
+        return bad
+    return messages.callback_errors(env)
+
+
 def validate(obj: object, name: str) -> list[str]:
-    return errors(obj, load(name))
+    found = errors(obj, load(name))
+    if name == "envelope.v1" and isinstance(obj, dict):
+        found += template_errors(obj)
+    return found

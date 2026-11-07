@@ -1,0 +1,31 @@
+🟠 Assistant · <b>Researcher run failed</b>
+<i>Shell refused the input; Auto Fix filed a fix</i>
+<blockquote expandable>Problem: input contained a blocked command
+Problem: retry limit reached
+Spent: $0.81, 1 min
+log: C:/logs/researcher.log</blockquote>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "Log",
+    "url": "https://example.com/log/9"
+   },
+   {
+    "text": "Fix issue",
+    "url": "https://github.com/o/r/issues/12"
+   }
+  ],
+  [
+   {
+    "text": "Retry",
+    "callback_data": "h|assistant|retry|g-run-failure"
+   },
+   {
+    "text": "Ack",
+    "callback_data": "h|assistant|ack|g-run-failure"
+   }
+  ]
+ ]
+}

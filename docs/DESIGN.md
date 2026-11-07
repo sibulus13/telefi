@@ -28,7 +28,7 @@ flowchart TD
 - **Glance first.** Every message renders as a headline, a one-line insight, details collapsed in
   an expandable quote, links as URL buttons and actions as callback buttons.
 - **Everything recorded.** Each delivery, reply and Bot API call is a JSON line, rotated before full.
-- **No dependencies.** Standard library only; the schema validator implements the JSON Schema
+- **No dependencies.** Standard library only, plus `tzdata` on Windows; the schema validator implements the JSON Schema
   subset the contracts use (`type`, `required`, `enum`, `maxLength`, `maxItems`, `properties`,
   `additionalProperties`, `items`).
 
@@ -42,6 +42,10 @@ flowchart TD
 | `inbound.py` | replies: parse updates, ForceReply notes, threaded replies, acks, sinks, long-poll loop |
 | `commands.py` | manifests -> `/help`, `/list`, the `/` menu, `/<app> <verb>` routing |
 | `logs.py` | JSON-lines append with size-based rotation |
+| `digest.py` | batches: collect, claim and send held messages |
+| `messages.py` | message templates and their facts |
+| `watch.py` | the hub's self-watch heartbeat |
+| `simulate.py` | replay a timed scenario against a mock hub |
 | `compat.py` | `TelegramChannel.send(title, body, reply_markup=...)` for simple direct sends |
 
 ## Two-way flows

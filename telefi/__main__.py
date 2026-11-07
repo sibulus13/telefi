@@ -4,6 +4,8 @@
     python -m telefi serve [--interval 30] drain forever; also long-polls Telegram if inbound.enabled
     python -m telefi preview [type ...]    print each sample exactly as the owner would see it (no send)
     python -m telefi samples [--send]      route the samples; mock unless --send (then really delivers)
+    python -m telefi digest --preview|--send  show / send the held batch (delivery=batch envelopes) now
+    python -m telefi simulate <scenario.json>  run a day on a fake clock and print what was sent and when
     python -m telefi validate <file.json>  check an envelope or inbound event against its schema
     python -m telefi schema <name>         print a published schema (envelope.v1 | inbound.v1 | hub_config.v1)
 """
@@ -17,12 +19,13 @@ import time
 import traceback
 from pathlib import Path
 
-from telefi import core, inbound, schema
+from telefi import core, digest, hub, inbound, schema, simulate, watch
 from telefi.render import render_plain
 from telefi.samples import samples
 
 SERVE_RETRY_S = 5
 SERVE_RETRY_MAX_S = 300
+POLL_TRANSIENT_LIMIT = 5      # consecutive failed rounds before a transient poll error is escalated
 PRUNE_EVERY_S = 3600
 
 
@@ -40,6 +43,7 @@ def _samples(send: bool) -> int:
     cfg = core.load_config()
     if not send:
         cfg = {**cfg, "mode": "mock"}
+    cfg = {**cfg, "digest": {**cfg.get("digest", {}), "quiet": []}}   # samples are asked for now, and their spool is temporary
     with tempfile.TemporaryDirectory() as tmp:
         spool = Path(tmp) / "spool"
         for env in samples().values():
@@ -48,7 +52,27 @@ def _samples(send: bool) -> int:
             env = rec["envelope"]
             res = ", ".join(f"{d['channel']}={'ok' if d['ok'] else 'FAILED ' + str(d['error'])}" for d in rec["deliveries"])
             print(f"{env['source']}.{env['kind']} [{env['severity']}] -> {res or 'no route'}")
+        held = len(list((spool / "digest").glob("*.json")))
+        if held:
+            print(f"{held} held for a batch, so not sent: this spool is temporary")
     print("mode:", "LIVE (really sent)" if send else "mock (nothing sent)")
+    return 0
+
+
+def _digest(send: bool) -> int:
+    cfg = core.load_config()
+    if send:
+        rec = digest.send(cfg)
+        if rec is None:
+            print("[hub] nothing collected for the digest")
+        elif not rec["deliveries"]:
+            print(f"[hub] {rec['error']}")
+        else:
+            print(f"[hub] digest of {len(rec['digest_items'])} items: " + ", ".join(
+                f"{d['channel']}={'ok' if d['ok'] else 'FAILED ' + str(d['error'])}" for d in rec["deliveries"]))
+        return 1 if rec and not rec["sent"] else 0
+    env = digest.preview(cfg, core.spool_root(cfg))
+    print("nothing collected for the digest" if env is None else render_plain(env, buttons=False))
     return 0
 
 
@@ -61,10 +85,11 @@ def _serve(interval: float) -> int:
     if cfg.get("inbound", {}).get("enabled"):
         menu = inbound.register_menu(cfg)
         core.append_jsonl(log, {"at": core.now_iso(), "event": "command menu", "ok": menu["ok"], "error": menu.get("error")})
+    digest.recover(core.spool_root(cfg))
     failures, pruned_at = 0, 0.0
     while True:
         try:
-            core.drain(cfg)
+            hub.serve_round(cfg, log=log)
             if time.monotonic() - pruned_at > PRUNE_EVERY_S:
                 core.prune_done(core.spool_root(cfg))
                 pruned_at = time.monotonic()
@@ -76,8 +101,18 @@ def _serve(interval: float) -> int:
         except Exception:
             failures += 1
             wait = min(SERVE_RETRY_S * 2 ** (failures - 1), SERVE_RETRY_MAX_S)   # an outage never spins
-            core.append_jsonl(log, {"at": core.now_iso(), "event": "round failed", "retry_in_s": wait,
-                                    "error": traceback.format_exc()[-2000:]})
+            ex = sys.exc_info()[1]
+            try:
+                watch.poll_failed(core.spool_root(cfg), streak=failures, transient=isinstance(ex, inbound.PollTransientError),
+                                  error=f"{type(ex).__name__}: {ex}")
+            except Exception:    # best-effort: reporting a failure must never end the serve loop
+                core.append_jsonl(log, {"at": core.now_iso(), "event": "self-watch failed", "error": traceback.format_exc()[-1000:]})
+            if isinstance(ex, inbound.PollTransientError) and failures < POLL_TRANSIENT_LIMIT:
+                core.append_jsonl(log, {"at": core.now_iso(), "event": "poll transient", "error_class": ex.error_class,
+                                        "streak": failures, "retry_in_s": wait})
+            else:
+                core.append_jsonl(log, {"at": core.now_iso(), "event": "round failed", "retry_in_s": wait,
+                                        "streak": failures, "error": traceback.format_exc()[-2000:]})
             time.sleep(wait)
 
 
@@ -94,6 +129,12 @@ def main(argv=None) -> int:
     p.add_argument("--no-buttons", action="store_true", help="hide action buttons (as sent while inbound is disabled)")
     sm = sub.add_parser("samples")
     sm.add_argument("--send", action="store_true")
+    d = sub.add_parser("digest")
+    dg = d.add_mutually_exclusive_group(required=True)
+    dg.add_argument("--preview", action="store_true", help="print the digest as it would be sent; send nothing")
+    dg.add_argument("--send", action="store_true", help="send the batch now; it counts as the current window")
+    sim = sub.add_parser("simulate")
+    sim.add_argument("scenario")
     v = sub.add_parser("validate")
     v.add_argument("file")
     sc = sub.add_parser("schema")
@@ -111,6 +152,10 @@ def main(argv=None) -> int:
         return _preview(a.types, buttons=not a.no_buttons)
     if a.cmd == "samples":
         return _samples(a.send)
+    if a.cmd == "digest":
+        return _digest(a.send)
+    if a.cmd == "simulate":
+        return simulate.simulate(a.scenario)
     if a.cmd == "validate":
         obj = json.loads(Path(a.file).read_text(encoding="utf-8"))
         name = "inbound.v1" if str(obj.get("schema", "")).endswith(".inbound.v1") else "envelope.v1"

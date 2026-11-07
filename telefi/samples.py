@@ -32,7 +32,7 @@ def samples() -> dict[str, dict]:
             insight="The health check found no API key in the fresh checkout; all tests passed.",
             body="[FAIL] health_check (ERROR)\nx api_credentials  API_KEY not set",
             evidence={"ref": "run 43-c84f43", "log_path": "~/.ci/gate-logs/43-c84f43.log",
-                      "links": [{"label": "PR #44", "url": f"{REPO}/pull/44"}, {"label": "Issue #43", "url": f"{REPO}/issues/43"}]},
+                      "links": [{"label": "PR #714", "url": f"{REPO}/pull/714"}, {"label": "Issue #43", "url": f"{REPO}/issues/43"}]},
             actions=ci_actions(43), dedup_key="ci:failure:43-c84f43"),
         "ci.blocker": envelope(
             source="ci", kind="blocker", severity="critical",
@@ -51,17 +51,17 @@ def samples() -> dict[str, dict]:
             dedup_key="scheduler:nightly-export"),
         "research.result": envelope(
             source="research", kind="result", severity="info",
-            title="Study #40: REJECT",
-            insight="By the time a stock is up 50%, the move is priced in.",
-            body="+0.38pp vs the benchmark over 63 days out of sample (CI -1.41 to +1.45; floor 2pp).",
-            evidence={"ref": f"study 40 @ {SHA[:7]}", "links": [
-                {"label": "Card", "url": f"{REPO}/blob/{SHA}/docs/cards/40.md"},
-                {"label": "Write-up", "url": f"{REPO}/blob/{SHA}/docs/results/40.md"},
-                {"label": "PR #46", "url": f"{REPO}/pull/46"}]},
+            title="Study #710: REJECT",
+            insight="By the time the signal fires, the move is priced in.",
+            body="+0.50pp vs the benchmark over 90 days out of sample (CI -1.20 to +2.30; floor 2pp).",
+            evidence={"ref": f"study 710 @ {SHA[:7]}", "links": [
+                {"label": "Card", "url": f"{REPO}/blob/{SHA}/docs/cards/710.md"},
+                {"label": "Write-up", "url": f"{REPO}/blob/{SHA}/docs/results/710.md"},
+                {"label": "PR #716", "url": f"{REPO}/pull/716"}]},
             actions=[{"id": "redirect", "label": "Re-test with note", "namespace": "research",
-                      "payload": {"study": 40}, "input": {"prompt": "What should a re-test change?"}}]),
+                      "payload": {"study": 710}, "input": {"prompt": "What should a re-test change?"}}]),
         "info.notice": envelope(
             source="inbox", kind="info", severity="info",
-            title="Inbox item done: check momentum after a 50% jump",
-            insight="Filed as study #40; result REJECT.", evidence={"ref": "inbox e2d1e51315af"}),
+            title="Inbox item done: check momentum after a breakout",
+            insight="Filed as study #710; result REJECT.", evidence={"ref": "inbox e2d1e51315af"}),
     }

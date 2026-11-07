@@ -1,0 +1,14 @@
+🟢 Assistant · <b>Price Watch: 8 items priced, 0 alerts</b>
+<i>$1.72 · 6 min</i>
+<blockquote expandable>Counts: created 0 · updated 8</blockquote>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "Notion",
+    "url": "https://notion.so/run-1"
+   }
+  ]
+ ]
+}

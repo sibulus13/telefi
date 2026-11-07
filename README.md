@@ -7,7 +7,7 @@
 drop a small JSON file in a folder; TeleFi sends it to your Telegram in a readable format and
 records the delivery. You answer from your phone (a button, a typed note, a `/command`) and TeleFi
 hands your answer back to the program as a validated JSON event. Pure Python standard library:
-no runtime dependencies.
+no runtime dependencies beyond zone data on Windows.
 
 ![TeleFi: programs drop envelope JSON into the spool; the hub sends it to Telegram, records it, and routes taps, replies and /commands back to the program](https://raw.githubusercontent.com/sibulus13/telefi/main/docs/images/architecture.svg)
 
@@ -44,8 +44,8 @@ no runtime dependencies.
 |---|---|
 | OS | Windows 11 (verified). Linux/macOS untested. |
 | Python | 3.12 (verified with 3.12.4) |
-| Runtime dependencies | none ([requirements.txt](requirements.txt) says so explicitly) |
-| Test dependencies | pinned in [requirements-dev.txt](requirements-dev.txt) (pytest 8.4.2 and its deps) |
+| Runtime dependencies | none, except `tzdata` on Windows ([requirements.txt](requirements.txt)) |
+| Test dependencies | pinned in [requirements-dev.txt](requirements-dev.txt) (pytest 8.4.2, its deps and `tzdata`) |
 | Telegram | a bot token from @BotFather and your chat id |
 
 ## Try it locally, step by step
@@ -101,7 +101,7 @@ and read your chat id from `https://api.telegram.org/bot<TOKEN>/getUpdates`.
 python -m telefi samples --send          # one real message of each type
 ```
 
-**7. Turn on replies.** Copy the full example config (every option, documented in
+**7. Turn on replies.** Copy the example config (options documented in
 [docs/CONFIGURATION.md](docs/CONFIGURATION.md)); it enables replies, routes `/ci` commands to
 `examples/echo_sink.py` and lists `examples/commands.example.json`:
 
@@ -148,13 +148,19 @@ From any other language, write the same JSON to `$TELEFI_HOME/spool/out/<id>.jso
 (write a temp file, then rename): see `examples/publish.mjs` for Node. Replies reach your program
 through a command sink (`examples/echo_sink.py`) or a queue folder (`examples/queue_drain.py`).
 
+## Batches and quiet hours
+
+Routine messages can wait for a batch at set times, and only critical messages break quiet hours. See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for the settings and [docs/MESSAGE_CATALOG.md](docs/MESSAGE_CATALOG.md) for the message templates.
+
 ## Examples (one per configurable part, all validated by the tests)
 
 | file | what it configures |
 |---|---|
 | `examples/.env.example` | secrets and paths |
 | `examples/hub.minimal.json` | send-only hub |
-| `examples/hub.example.json` | every hub option: routes, channels, dedup, logs, replies, sinks |
+| `examples/hub.example.json` | routes, channels, dedup, logs, replies, sinks |
+| `examples/hub.batch.json` | batch windows, quiet hours and delivery lanes |
+| `examples/simulate/` | replay a day of messages with `python -m telefi simulate <file>` |
 | `examples/commands.example.json` | an app's `/commands` |
 | `examples/envelope.example.json` | every message field |
 | `examples/inbound.example.json` | what your program receives |

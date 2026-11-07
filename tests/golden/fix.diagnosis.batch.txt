@@ -1,0 +1,5 @@
+🔵 <b>1 updates · 12:00</b>
+• 🔴 Can&#x27;t auto-fix: Builder daemon hangs on shutdown
+<blockquote expandable><b>▸ 🔴 Errors (1)</b>
+Can&#x27;t auto-fix: Builder daemon hangs on shutdown
+<a href="https://example.com/diag/3">Diagnosis</a></blockquote>

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "telefi"
-version = "0.3.1"
+version = "0.4.0"
 description = "Telegram as a two-way control surface for scripts, CI and agents: drop a JSON envelope in a folder, get a readable message, and receive the owner's replies back as events."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -23,8 +23,8 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: System :: Monitoring",
 ]
-# Runtime is pure standard library: no third-party dependencies.
-dependencies = []
+# Pure standard library, plus zone data on Windows, which has no system database.
+dependencies = ['tzdata; sys_platform == "win32"']
 
 [project.urls]
 Homepage = "https://github.com/sibulus13/telefi"
@@ -40,8 +40,9 @@ dev = ["pytest==8.4.2"]
 include = ["telefi*"]
 
 [tool.setuptools.package-data]
-"telefi" = ["schemas/*.json"]
+"telefi" = ["schemas/*.json", "templates/*.json"]
 
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
+markers = ["integration: simulated-time hub runs (tests/sim)"]

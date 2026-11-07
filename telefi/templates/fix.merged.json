@@ -1,0 +1,28 @@
+{
+  "$id": "telefi.template.fix.merged",
+  "title": "Auto Fix merged a fix",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "problem",
+    "links"
+  ],
+  "properties": {
+    "problem": {
+      "type": "string",
+      "maxLength": 160
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "pr": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^https?://"
+        }
+      }
+    }
+  }
+}

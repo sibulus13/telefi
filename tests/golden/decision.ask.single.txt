@@ -1,0 +1,30 @@
+🟡 Builder · <b>Move the deploy window to Friday?</b>
+<i>Recommended: Move to Friday</i>
+<blockquote expandable>★ Move to Friday: weekend soak time
+Keep Tuesday: no change
+Decide next week</blockquote>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "Move to Friday",
+    "callback_data": "h|builder|friday|g-decision-ask"
+   },
+   {
+    "text": "Keep Tuesday",
+    "callback_data": "h|builder|keep|g-decision-ask"
+   },
+   {
+    "text": "Decide next week",
+    "callback_data": "h|builder|later|g-decision-ask"
+   }
+  ],
+  [
+   {
+    "text": "Answer with note",
+    "callback_data": "h|builder|note|g-decision-ask"
+   }
+  ]
+ ]
+}

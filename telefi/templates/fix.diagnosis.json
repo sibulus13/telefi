@@ -1,0 +1,28 @@
+{
+  "$id": "telefi.template.fix.diagnosis",
+  "title": "Auto Fix could not auto-fix",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "problem",
+    "links"
+  ],
+  "properties": {
+    "problem": {
+      "type": "string",
+      "maxLength": 160
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "diagnosis": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^https?://"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+ "timezone": "America/Los_Angeles",
+ "start": "2026-10-28T06:00",
+ "end": "+1 08:05",
+ "step_min": 1,
+ "arrivals": [
+  {
+   "at": "07:00",
+   "source": "research",
+   "kind": "result",
+   "severity": "info",
+   "title": "#710 breakout study: DROP"
+  },
+  {
+   "at": "07:30",
+   "source": "research",
+   "kind": "result",
+   "severity": "info",
+   "title": "#712 ACME spread study: REFINE"
+  },
+  {
+   "at": "09:15",
+   "source": "researcher",
+   "kind": "failure",
+   "severity": "error",
+   "title": "Researcher run failed (input refused)"
+  },
+  {
+   "at": "11:50",
+   "source": "assistant",
+   "kind": "result",
+   "severity": "info",
+   "title": "Price Watch: 8 items priced, 0 alerts"
+  },
+  {
+   "at": "16:30",
+   "source": "research",
+   "kind": "result",
+   "severity": "info",
+   "title": "#715 basket study: PURSUE"
+  },
+  {
+   "at": "17:00",
+   "source": "research",
+   "kind": "result",
+   "severity": "info",
+   "title": "#716 seasonal study: DROP"
+  },
+  {
+   "at": "19:59",
+   "source": "builder",
+   "kind": "review",
+   "severity": "warn",
+   "title": "PR #51 is ready for review"
+  },
+  {
+   "at": "21:59",
+   "source": "assistant",
+   "kind": "result",
+   "severity": "info",
+   "title": "Price Watch: 6 items priced, 1 alert"
+  }
+ ]
+}

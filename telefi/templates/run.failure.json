@@ -1,0 +1,57 @@
+{
+  "$id": "telefi.template.run.failure",
+  "title": "Agent run failed",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "agent",
+    "reason"
+  ],
+  "properties": {
+    "agent": {
+      "type": "string",
+      "maxLength": 60
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "problems": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "string",
+        "maxLength": 160
+      }
+    },
+    "cost": {
+      "type": "string",
+      "maxLength": 20
+    },
+    "duration": {
+      "type": "string",
+      "maxLength": 20
+    },
+    "log_path": {
+      "type": "string",
+      "maxLength": 400
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "log": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^https?://"
+        },
+        "fix_issue": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^https?://"
+        }
+      }
+    }
+  }
+}

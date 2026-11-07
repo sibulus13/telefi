@@ -1,0 +1,35 @@
+🟢 Research · <b>#712 ACME spread study: PURSUE</b>
+<i>Sharpe 1.4 vs QQQ B&amp;H 1.1</i>
+<blockquote expandable>Hypothesis: the spread on ACME covers costs
+Backtest: 2019-2025 · Sharpe 1.4 vs QQQ B&amp;H 1.1 · max DD -9%
+Paper: not started
+Source rules: transcribed (copied from the source)</blockquote>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "Card",
+    "url": "https://notion.so/card-712"
+   },
+   {
+    "text": "PR #45",
+    "url": "https://github.com/o/r/pull/45"
+   },
+   {
+    "text": "Result",
+    "url": "https://example.com/result/712"
+   }
+  ],
+  [
+   {
+    "text": "Start paper",
+    "callback_data": "h|research|paper|g-research-pursue"
+   },
+   {
+    "text": "Hold",
+    "callback_data": "h|research|hold|g-research-pursue"
+   }
+  ]
+ ]
+}
