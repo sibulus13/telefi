@@ -1,0 +1,90 @@
+{
+  "schema": "telefi.hub_config.v1",
+  "mode": "live",
+  "dedup_window_min": 360,
+  "channels": {
+    "telegram": {
+      "type": "telegram",
+      "token_env": "TELEGRAM_BOT_TOKEN",
+      "chat_env": "TELEGRAM_CHAT_ID"
+    },
+    "file": {
+      "type": "file",
+      "path": "bell.jsonl"
+    }
+  },
+  "routes": [
+    {
+      "match": {
+        "severity": [
+          "critical"
+        ]
+      },
+      "channels": [
+        "telegram",
+        "file"
+      ]
+    },
+    {
+      "match": {
+        "kind": [
+          "blocker"
+        ]
+      },
+      "channels": [
+        "telegram",
+        "file"
+      ]
+    },
+    {
+      "match": {
+        "severity": [
+          "error",
+          "warn"
+        ]
+      },
+      "channels": [
+        "telegram",
+        "file"
+      ],
+      "delivery": "batch"
+    },
+    {
+      "match": {
+        "kind": [
+          "review",
+          "result",
+          "digest"
+        ]
+      },
+      "channels": [
+        "telegram",
+        "file"
+      ],
+      "delivery": "batch"
+    },
+    {
+      "match": {},
+      "channels": [
+        "file"
+      ]
+    }
+  ],
+  "digest": {
+    "windows": [
+      "08:00",
+      "12:00",
+      "16:00",
+      "20:00"
+    ],
+    "quiet": [
+      "22:00",
+      "07:00"
+    ],
+    "timezone": "America/Toronto",
+    "research_sources": [
+      "research",
+      "newsdesk"
+    ]
+  }
+}

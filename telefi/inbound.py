@@ -4,7 +4,7 @@
 tap h|ns|action|env  --action has input?--> ForceReply prompt --reply--> event{payload.note} --> sink
 tap h|ns|ack|env     --> hub acks the envelope's dedup_key (no more re-alerts for ack_days)
 /ci retry 43 note    --> the "ci" manifest -> its sink (commands.py)
-anything else        --> kind=legacy with the raw update --> the 'legacy' sink (an existing bot handler)
+anything else        --> kind=legacy with the raw update --> the 'legacy' sink (an existing bot handler); its last stdout line is sent back
 ```
 
 The hub is the ONLY getUpdates consumer for the bot; whatever it does not own it forwards whole.
@@ -16,7 +16,7 @@ import subprocess
 from pathlib import Path
 from typing import Callable
 
-from telefi import commands, core
+from telefi import commands, core, messages
 from telefi.adapters import telegram_call, telegram_creds
 from telefi.render import parse_callback
 
@@ -133,7 +133,13 @@ def handle_update(update: dict, cfg: dict, root: Path, *, tg: Callable, chat_id:
     cq_id = (update.get("callback_query") or {}).get("id")
 
     if ev["kind"] == "legacy":
-        res = dispatch(ev, cfg, root, run=run)            # the legacy handler answers the tap itself
+        # The hub owns the Bot API: it acknowledges the tap and sends the handler's reply (its last stdout line),
+        # so an old handler never needs Telegram credentials of its own.
+        res = dispatch(ev, cfg, root, run=run)
+        if cq_id:
+            tg("answerCallbackQuery", {"callback_query_id": cq_id})
+        if res.get("reply"):
+            tg("sendMessage", {"chat_id": chat_id, "text": res["reply"][:REPLY_MAX]})
         return {"outcome": "legacy", "ok": res["ok"]}
 
     if ev["kind"] == "command" and ev["namespace"] == HUB_NS and ev["command"] in ("help", "list"):
@@ -153,12 +159,12 @@ def handle_update(update: dict, cfg: dict, root: Path, *, tg: Callable, chat_id:
     if ev["kind"] == "action":
         env = core.find_envelope(root, ev["envelope_id"])
         if ev["action_id"] == REPLY:                      # threaded reply: any number per message
-            action = next((a for a in (env or {}).get("actions", []) if a.get("input")), None)
+            action = next((a for a in messages.actions_for(env or {}) if a.get("input")), None)
             if not action:
                 tg("sendMessage", {"chat_id": chat_id, "text": "This message takes no notes; use its buttons or a /command."})
                 return {"outcome": "reply_not_accepted"}
             ev["namespace"], ev["action_id"] = action["namespace"], action["id"]
-        action = next((a for a in (env or {}).get("actions", []) if a["id"] == ev["action_id"]), None)
+        action = next((a for a in messages.actions_for(env or {}) if a["id"] == ev["action_id"]), None)
         if not action:
             if cq_id:
                 tg("answerCallbackQuery", {"callback_query_id": cq_id, "text": "This button has expired."})
@@ -201,6 +207,29 @@ def register_menu(cfg: dict, *, opener: Callable | None = None) -> dict:
     return telegram_call(token, "setMyCommands", {"commands": menu}, opener=opener)
 
 
+TRANSIENT_ERRORS = frozenset({"TimeoutError", "timeout", "RemoteDisconnected", "ConnectionResetError",
+                              "ConnectionAbortedError", "ConnectionRefusedError", "URLError", "IncompleteRead"})
+HTTP_SERVER_ERROR_MIN = 500
+
+
+class PollTransientError(RuntimeError):
+    """A routine long-poll network hiccup (timeout, dropped connection, Telegram 5xx); the next round recovers."""
+
+    def __init__(self, message: str, error_class: str):
+        super().__init__(message)
+        self.error_class = error_class
+
+
+def poll_error(res: dict) -> RuntimeError:
+    """The exception for a failed getUpdates result: transient for network hiccups and 5xx, else plain."""
+    err = str(res.get("error"))
+    cls, _, code = err.partition(":")
+    code = code.strip()
+    transient = cls in TRANSIENT_ERRORS or (cls == "HTTPError" and code.isdigit() and int(code) >= HTTP_SERVER_ERROR_MIN)
+    msg = f"getUpdates failed: {err}"
+    return PollTransientError(msg, cls) if transient else RuntimeError(msg)
+
+
 def poll_once(cfg: dict, *, root: Path | None = None, timeout_s: int = 50, opener: Callable | None = None,
               run: Callable = subprocess.run) -> int:
     """One long-poll round. Only while inbound.enabled: getUpdates has exactly one consumer per bot."""
@@ -220,7 +249,7 @@ def poll_once(cfg: dict, *, root: Path | None = None, timeout_s: int = 50, opene
     offset = int(core.read_state(root, "telegram.json").get("offset", 0))
     res = telegram_call(token, "getUpdates", {"offset": offset, "timeout": timeout_s}, opener=opener, timeout=timeout_s + 10)
     if not res["ok"]:                                     # raise, so serve backs off instead of spinning
-        raise RuntimeError(f"getUpdates failed: {res.get('error')}")
+        raise poll_error(res)
     n = 0
     for u in res.get("result") or []:
         msg = u.get("message") or (u.get("callback_query") or {}).get("message") or {}

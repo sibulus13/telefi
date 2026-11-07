@@ -1,0 +1,23 @@
+🟢 Deal · <b>Widget Pro $129 (-28%)</b>
+<i>Lowest in 90 days</i>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "Product",
+    "url": "https://example.com/p/widget-pro"
+   }
+  ],
+  [
+   {
+    "text": "Snooze 7 d",
+    "callback_data": "h|deal|snooze7|g-deal-alert"
+   },
+   {
+    "text": "Ack",
+    "callback_data": "h|deal|ack|g-deal-alert"
+   }
+  ]
+ ]
+}

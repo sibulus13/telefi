@@ -1,0 +1,7 @@
+🔵 <b>1 updates · 12:00</b>
+• 🔴 Researcher run failed: Shell refused the input; Auto Fix filed a fix
+<blockquote expandable><b>▸ 🔴 Errors (1)</b>
+Researcher run failed
+Shell refused the input; Auto Fix filed a fix
+Problem: input contained a blocked command
+<a href="https://example.com/log/9">Log</a></blockquote>

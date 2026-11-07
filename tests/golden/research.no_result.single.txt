@@ -1,0 +1,19 @@
+🟠 Research · <b>#716 seasonal study: NO RESULT</b>
+<i>Run timed out with no result file; Auto Fix is on it</i>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "Card",
+    "url": "https://notion.so/card-716"
+   }
+  ],
+  [
+   {
+    "text": "Retry",
+    "callback_data": "h|research|retry|g-research-no_result"
+   }
+  ]
+ ]
+}

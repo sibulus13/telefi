@@ -64,6 +64,37 @@
       "maxLength": 3500,
       "description": "details; collapsed by default (expandable quote)"
     },
+    "sections": {
+      "type": "array",
+      "maxItems": 6,
+      "description": "details as data: each a heading and short lines, rendered inside the collapsed details",
+      "items": {
+        "type": "object",
+        "required": [
+          "heading",
+          "lines"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "heading": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "lines": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        }
+      }
+    },
+    "silent": {
+      "type": "boolean",
+      "description": "override: true = no notification sound. Default: silent when the status dot is green or blue"
+    },
     "evidence": {
       "type": "object",
       "additionalProperties": false,
@@ -106,7 +137,7 @@
     },
     "actions": {
       "type": "array",
-      "maxItems": 6,
+      "maxItems": 24,
       "description": "buttons; a tap becomes an inbound.v1 event routed to `namespace`'s sink",
       "items": {
         "type": "object",
@@ -173,6 +204,25 @@
     "dedup_window_min": {
       "type": "number",
       "description": "this message's dedup window; default: the hub's dedup_window_min"
+    },
+    "delivery": {
+      "type": "string",
+      "enum": [
+        "now",
+        "batch",
+        "digest"
+      ],
+      "description": "now (default): send when routed. batch: if it would reach Telegram, hold it for the next batch window (08/12/16/20) instead; a sender can only make a message calmer, never louder. digest is the old name of batch. critical severity and kind blocker always go now."
+    },
+    "template": {
+      "type": "string",
+      "maxLength": 40,
+      "pattern": "^[a-z]+(\\.[a-z]+)+$",
+      "description": "optional message template (docs/MESSAGE_CATALOG.md): with `facts`, TeleFi owns the wording, links and buttons. Free-text envelopes omit both."
+    },
+    "facts": {
+      "type": "object",
+      "description": "the template's typed facts, validated against telefi/templates/<template>.json; unknown or missing facts reject the envelope"
     }
   }
 }

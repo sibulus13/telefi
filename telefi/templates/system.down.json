@@ -1,0 +1,32 @@
+{
+  "$id": "telefi.template.system.down",
+  "title": "A system the owner relies on is down",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "what",
+    "since"
+  ],
+  "properties": {
+    "what": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "since": {
+      "type": "string",
+      "maxLength": 30
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "log": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^https?://"
+        }
+      }
+    }
+  }
+}

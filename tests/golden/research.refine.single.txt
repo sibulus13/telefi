@@ -1,0 +1,36 @@
+🟡 Research · <b>#712 ACME spread study: REFINE</b>
+<i>Edge holds only at low volume; re-run with higher costs</i>
+<blockquote expandable>Hypothesis: the spread on ACME covers costs
+Backtest: 2019-2025 · Sharpe 0.9 vs QQQ B&amp;H 1.1 · max DD -9%
+Paper: not started
+Source rules: transcribed (copied from the source)
+Why: edge disappears at realistic fill rate</blockquote>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "Card",
+    "url": "https://notion.so/card-712"
+   },
+   {
+    "text": "PR #45",
+    "url": "https://github.com/o/r/pull/45"
+   },
+   {
+    "text": "Result",
+    "url": "https://example.com/result/712"
+   }
+  ],
+  [
+   {
+    "text": "Re-run",
+    "callback_data": "h|research|rerun|g-research-refine"
+   },
+   {
+    "text": "Hold",
+    "callback_data": "h|research|hold|g-research-refine"
+   }
+  ]
+ ]
+}

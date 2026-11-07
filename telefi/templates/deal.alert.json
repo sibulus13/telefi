@@ -1,0 +1,40 @@
+{
+  "$id": "telefi.template.deal.alert",
+  "title": "Deal alert",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "product",
+    "price",
+    "links"
+  ],
+  "properties": {
+    "product": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "price": {
+      "type": "string",
+      "maxLength": 20
+    },
+    "discount": {
+      "type": "string",
+      "maxLength": 20
+    },
+    "low_days": {
+      "type": "number"
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "product": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^https?://"
+        }
+      }
+    }
+  }
+}

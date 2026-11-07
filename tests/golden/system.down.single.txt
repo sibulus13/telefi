@@ -1,0 +1,18 @@
+🔴 TeleFi · <b>Telegram unreachable since 21:50</b>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "Log",
+    "url": "https://example.com/hub.log"
+   }
+  ],
+  [
+   {
+    "text": "Ack",
+    "callback_data": "h|telefi|ack|g-system-down"
+   }
+  ]
+ ]
+}

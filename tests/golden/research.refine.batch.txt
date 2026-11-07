@@ -1,0 +1,7 @@
+🔵 <b>1 updates · 12:00</b>
+• 🔬 #712 ACME spread study: REFINE, higher costs next
+<blockquote expandable><b>▸ 🔬 Research (1)</b>
+#712 ACME spread study: REFINE
+Edge holds only at low volume; re-run with higher costs
+Hypothesis: the spread on ACME covers costs
+<a href="https://notion.so/card-712">Card</a></blockquote>

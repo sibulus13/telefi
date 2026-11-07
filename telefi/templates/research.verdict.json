@@ -1,0 +1,134 @@
+{
+  "$id": "telefi.template.research.verdict",
+  "title": "Research verdict: PURSUE | REFINE | DROP | BLOCKED | NO RESULT",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "issue",
+    "name",
+    "outcome"
+  ],
+  "properties": {
+    "issue": {
+      "type": "number"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "PURSUE",
+        "REFINE",
+        "DROP",
+        "BLOCKED",
+        "NO RESULT"
+      ]
+    },
+    "insight": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "bullet_note": {
+      "type": "string",
+      "maxLength": 40
+    },
+    "hypothesis": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "backtest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric",
+        "value"
+      ],
+      "properties": {
+        "period": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "metric": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 24
+        },
+        "benchmark": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "benchmark_value": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "ci": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "max_dd": {
+          "type": "string",
+          "maxLength": 20
+        }
+      }
+    },
+    "paper": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "days": {
+          "type": "number"
+        },
+        "return": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "benchmark_return": {
+          "type": "string",
+          "maxLength": 20
+        }
+      }
+    },
+    "source_rules": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "why": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "card": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^https?://"
+        },
+        "pr": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^https?://"
+        },
+        "result": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^https?://"
+        }
+      }
+    }
+  }
+}

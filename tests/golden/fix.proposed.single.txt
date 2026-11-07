@@ -1,0 +1,22 @@
+🟡 Autofix · <b>Fix ready: Researcher refuses long inputs · needs your merge</b>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "PR #52",
+    "url": "https://github.com/o/r/pull/52"
+   }
+  ],
+  [
+   {
+    "text": "Merge",
+    "callback_data": "h|autofix|merge|g-fix-proposed"
+   },
+   {
+    "text": "Hold",
+    "callback_data": "h|autofix|hold|g-fix-proposed"
+   }
+  ]
+ ]
+}

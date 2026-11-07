@@ -1,0 +1,46 @@
+{
+  "$id": "telefi.template.run.receipt",
+  "title": "Agent run finished",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "agent",
+    "summary"
+  ],
+  "properties": {
+    "agent": {
+      "type": "string",
+      "maxLength": 60
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "cost": {
+      "type": "string",
+      "maxLength": 20
+    },
+    "duration": {
+      "type": "string",
+      "maxLength": 20
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "notion": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^https?://"
+        }
+      }
+    }
+  }
+}

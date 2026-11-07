@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Callable
 
 from telefi import logs
-from telefi.render import render_telegram
+from telefi.render import is_silent, render_telegram
 
 HTTP_TIMEOUT_S = 10
 TELEGRAM_API = "https://api.telegram.org"
@@ -60,7 +60,8 @@ class TelegramAdapter:
         if not (self.token and self.chat_id):
             return {"ok": False, "error": "telegram not configured (token/chat env missing)"}
         r = render_telegram(env, buttons=buttons)
-        body = {"chat_id": self.chat_id, "text": r["text"], "parse_mode": "HTML", "disable_web_page_preview": True}
+        body = {"chat_id": self.chat_id, "text": r["text"], "parse_mode": "HTML", "disable_web_page_preview": True,
+                "disable_notification": is_silent(env)}
         if r["reply_markup"]:
             body["reply_markup"] = r["reply_markup"]
         res = telegram_call(self.token, "sendMessage", body, opener=self.opener)

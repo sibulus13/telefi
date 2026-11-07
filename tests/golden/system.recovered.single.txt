@@ -1,0 +1,12 @@
+🟢 TeleFi · <b>Telegram back after 2 h 10 min</b>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "Ack",
+    "callback_data": "h|telefi|ack|g-system-recovered"
+   }
+  ]
+ ]
+}

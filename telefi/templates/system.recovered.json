@@ -1,0 +1,32 @@
+{
+  "$id": "telefi.template.system.recovered",
+  "title": "A system is back",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "what",
+    "after"
+  ],
+  "properties": {
+    "what": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "after": {
+      "type": "string",
+      "maxLength": 30
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "log": {
+          "type": "string",
+          "maxLength": 2048,
+          "pattern": "^https?://"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+🟡 Research · <b>#714 basket study: BLOCKED</b>
+<i>Missing data: ticks 2019-2022; cheapest unblock is a one-month sample</i>
+<blockquote expandable>Hypothesis: the basket beats cash after costs</blockquote>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "Card",
+    "url": "https://notion.so/card-714"
+   }
+  ],
+  [
+   {
+    "text": "Unblock with note",
+    "callback_data": "h|research|unblock|g-research-blocked"
+   },
+   {
+    "text": "Drop",
+    "callback_data": "h|research|drop|g-research-blocked"
+   }
+  ]
+ ]
+}

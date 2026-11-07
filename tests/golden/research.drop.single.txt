@@ -1,0 +1,20 @@
+🔵 Research · <b>#710 breakout study: DROP</b>
+<i>Sharpe 0.2 vs QQQ B&amp;H 1.1; no edge after costs</i>
+<blockquote expandable>Backtest: 2019-2025 · Sharpe 0.2 vs QQQ B&amp;H 1.1 · max DD -31%</blockquote>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "Card",
+    "url": "https://notion.so/card-710"
+   }
+  ],
+  [
+   {
+    "text": "Ack",
+    "callback_data": "h|research|ack|g-research-drop"
+   }
+  ]
+ ]
+}

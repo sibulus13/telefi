@@ -1,0 +1,18 @@
+🟡 Autofix · <b>Can&#x27;t auto-fix: Builder daemon hangs on shutdown</b>
+--- keyboard
+{
+ "inline_keyboard": [
+  [
+   {
+    "text": "Diagnosis",
+    "url": "https://example.com/diag/3"
+   }
+  ],
+  [
+   {
+    "text": "Ack",
+    "callback_data": "h|autofix|ack|g-fix-diagnosis"
+   }
+  ]
+ ]
+}
