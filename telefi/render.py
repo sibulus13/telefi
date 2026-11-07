@@ -1,7 +1,8 @@
 """The message format standard: glance first, details collapsed, links and actions as buttons.
 
     🟠 Ci · Build #43 gate failed                        <- headline: status dot, source, what happened (bold)
-    No API key in the fresh checkout                      <- insight: why it matters / what next (italic)
+    No API key in the fresh checkout                      <- insight: the plain context (italic)
+    What to do: add the key, then tap Retry               <- next_step: the one thing to do now
     > details: sections, body, ref, log path, collapsed   <- expandable quote; tap to open
     [ Card ] [ PR #716 ]                                   <- evidence links: buttons that open the URL
     [ Ack ] [ Retry ] [ Retry with note ]                 <- actions: only while inbound is enabled
@@ -31,6 +32,13 @@ TELEGRAM_MAX_TEXT = 3900
 HUB_SOURCE = "telefi"          # messages the hub itself makes (the digest) carry no source prefix
 DISPLAY_NAME = {HUB_SOURCE: "TeleFi"}   # how a source reads in a message prefix (default: capitalised)
 ELLIPSIS = "…"
+NEXT_STEP_LABEL = "What to do:"
+WORD_JOINER = "\u2060"
+# Telegram turns web addresses, commands and @names into live links by itself, whatever the parse mode, so text from
+# outside could carry one. A list of domain endings can never be complete, so an invisible character goes after each
+# trigger instead: it ends a link in Telegram's own detector, and the words still read the same. A real link belongs
+# in evidence, as a button.
+LINK_TRIGGER = re.compile(r"\.(?=[^\W\d]|\d+\.\d)|(?<![\w/])/(?=\w)|(?<!\w)@(?=\w)|:(?=//)")
 BATCH_SECTIONS = (("errors", "🔴", "Errors"), ("research", "🔬", "Research"),
                   ("reviews", "🟡", "Reviews"), ("receipts", "✅", "Receipts"))   # the fixed order
 ROLLUP_SECTIONS = (("reviews", "🙋", "Needs you"), ("errors", "⛔", "Stalls"),
@@ -38,6 +46,7 @@ ROLLUP_SECTIONS = (("reviews", "🙋", "Needs you"), ("errors", "⛔", "Stalls")
 BULLET_MAX = 70                # characters of a bullet's title
 DETAIL_LINES = 3               # per item in its section, the title line included
 DETAIL_MAX = 100               # characters per detail line
+INSIGHT_MAX = 300              # an item with a next step keeps its whole context, the envelope's limit
 ENTITY_BUDGET = 90             # Telegram allows 100 entities (b, i, a, code, blockquote ...) in one message
 _ENTITY = re.compile(r"<(?:b|i|a|code|blockquote)[ >]")
 PRIVATE_HTML = "_html"
@@ -49,6 +58,15 @@ SILENT_DOTS = {"🟢", "🔵"}
 _TAG = re.compile(r"<[^>]+>")
 _OPEN_OR_CLOSE = re.compile(r"<(/?)(b|i|code|blockquote)(?=[\s>])[^>]*>")
 _PARTIAL_ENTITY = re.compile(r"&#?\w{0,8}$")
+
+
+def stop_links(text: str) -> str:
+    return LINK_TRIGGER.sub(lambda m: m.group(0) + WORD_JOINER, text)
+
+
+def safe(text: str) -> str:
+    """Outside text, ready for the message HTML."""
+    return html.escape(stop_links(text))
 
 
 def shorten(text: str, limit: int) -> str:
@@ -128,12 +146,12 @@ def _details(env: dict) -> str:
         known += mine
         if not mine:
             continue
-        lines.append(f"<b>{e(sec['heading'])}</b>")
-        lines += [f"• {e(line)}" for line in mine]
+        lines.append(f"<b>{safe(sec['heading'])}</b>")
+        lines += [f"• {safe(line)}" for line in mine]
         lines.append("")
     body = fresh_lines(env.get("body", "").splitlines(), known)
     if body:
-        lines.append(e("\n".join(body)))
+        lines.append(safe("\n".join(body)))
     ev = env.get("evidence") or {}
     if ev.get("ref") and _is_problem(env):            # an id helps debug a failure; elsewhere it is noise
         lines.append(f"ref: <code>{e(ev['ref'])}</code>")
@@ -198,24 +216,29 @@ def batch_item(env: dict, count: int, section: str) -> dict:
     emoji = next(em for key, em, _ in BATCH_SECTIONS if key == section)
     view = messages.view_of(env)
     if view:                                                                  # a template: its own bullet and details
-        title, bullet = view["headline"], view["bullet"]
-        extra = [view["insight"]] + view["details"]
+        title, bullet, insight, step = view["headline"], view["bullet"], view["insight"], view["next_step"]
+        extra = [insight] + view["details"]
         ev = {"links": view["links"]}
     else:
         title = bullet = env["title"]
-        extra = [env.get("insight", "")] + env.get("body", "").splitlines()
+        insight, step = env.get("insight", ""), env.get("next_step", "")
+        extra = [insight] + env.get("body", "").splitlines()
         extra += [line for sec in env.get("sections", []) for line in sec["lines"]]
         ev = env.get("evidence") or {}
+    step_line = f"{NEXT_STEP_LABEL} {shorten(step, INSIGHT_MAX)}" if step else ""
     lines = [shorten(title, DETAIL_MAX - len(suffix)) + suffix]
-    lines += [shorten(t, DETAIL_MAX) for t in fresh_lines(extra, [title]) if t.strip()][:DETAIL_LINES - 1]
+    if step:                                                                  # it asks for something: say all of it
+        lines += [shorten(insight, INSIGHT_MAX), step_line]
+    else:
+        lines += [shorten(t, DETAIL_MAX) for t in fresh_lines(extra, [title]) if t.strip()][:DETAIL_LINES - 1]
     link = (ev.get("links") or [None])[0]
     if link:
         tail = f'<a href="{e(link["url"], quote=True)}">{e(link["label"])}</a>'
     else:
         tail = f"log: <code>{e(ev['log_path'])}</code>" if ev.get("log_path") else ""
-    return {"section": section, "count": count,
-            "bullet": f"• {emoji} {e(shorten(bullet, BULLET_MAX - len(suffix)) + suffix)}",
-            "block": "\n".join([e(t) for t in lines] + ([tail] if tail else []))}
+    return {"section": section, "count": count, "step": safe(step_line),
+            "bullet": f"• {emoji} {safe(shorten(bullet, BULLET_MAX - len(suffix)) + suffix)}",
+            "block": "\n".join([safe(t) for t in lines] + ([tail] if tail else []))}
 
 
 def batch_html(items: list[dict], label: str, sections: tuple = BATCH_SECTIONS, counts: list[str] | None = None) -> str:
@@ -230,14 +253,16 @@ def batch_html(items: list[dict], label: str, sections: tuple = BATCH_SECTIONS, 
         mine = [i for i in ordered if i["section"] == key]
         if mine:
             quote = f"<b>▸ {emoji} {name} ({sum(i['count'] for i in mine)})</b>\n" + "\n\n".join(i["block"] for i in mine)
-            groups.append((len(mine), f"<blockquote expandable>{quote}</blockquote>"))
+            groups.append((key, len(mine), f"<blockquote expandable>{quote}</blockquote>"))
 
     def compose(n_bullets: int, n_groups: int) -> str:
         unseen = len(ordered) - n_bullets                                   # no bullet at all
-        stripped = n_bullets - sum(n for n, _ in groups[:n_groups])          # a bullet, but its details are dropped
+        stripped = n_bullets - sum(n for _, n, _ in groups[:n_groups])       # a bullet, but its details are dropped
+        kept = {key for key, _, _ in groups[:n_groups]}
         note = (f"+{unseen} more, details for {stripped} in bell.jsonl" if unseen
                 else f"+{stripped} more in bell.jsonl" if stripped else "")
-        parts = [head] + [i["bullet"] for i in ordered[:n_bullets]] + [q for _, q in groups[:n_groups]]
+        bullets = [i["bullet"] + (f"\n{i['step']}" if i.get("step") and i["section"] not in kept else "") for i in ordered[:n_bullets]]
+        parts = [head] + bullets + [q for _, _, q in groups[:n_groups]]
         return "\n".join(parts + ([note] if note else []))
 
     attempts = [(len(ordered), k) for k in range(len(groups), -1, -1)] + [(n, 0) for n in range(len(ordered) - 1, 0, -1)]
@@ -257,16 +282,20 @@ def telegram_text(env: dict) -> str:
     prefix = "" if hub_digest else f"{e(source_label(env['source']))} · "
     view = messages.view_of(env)
     if view:
-        parts = [f"{view['dot']} {prefix}<b>{e(view['headline'])}</b>"]
+        parts = [f"{view['dot']} {prefix}<b>{safe(view['headline'])}</b>"]
         if view["insight"]:
-            parts.append(f"<i>{e(view['insight'])}</i>")
+            parts.append(f"<i>{safe(view['insight'])}</i>")
+        if view["next_step"]:
+            parts.append(f"<b>{NEXT_STEP_LABEL}</b> {safe(view['next_step'])}")
         details = fresh_lines(view["details"], [view["headline"], view["insight"]])
         if details:
-            parts.append("<blockquote expandable>" + "\n".join(e(line) for line in details) + "</blockquote>")
+            parts.append("<blockquote expandable>" + "\n".join(safe(line) for line in details) + "</blockquote>")
         return "\n".join(parts)
-    parts = [f"{status_dot(env)} {prefix}<b>{e(env['title'])}</b>"]
+    parts = [f"{status_dot(env)} {prefix}<b>{safe(env['title'])}</b>"]
     if env.get("insight"):
-        parts.append(f"<i>{e(env['insight'])}</i>")
+        parts.append(f"<i>{safe(env['insight'])}</i>")
+    if env.get("next_step"):
+        parts.append(f"<b>{NEXT_STEP_LABEL}</b> {safe(env['next_step'])}")
     details = _details(env)
     if details:
         parts.append(f"<blockquote expandable>{details}</blockquote>")

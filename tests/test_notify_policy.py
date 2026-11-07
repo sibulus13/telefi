@@ -347,8 +347,9 @@ def test_five_failed_polls_raise_one_issue(root):
     assert len(issues(root)) == 1 and issues(root)[0]["dedup_key"].startswith("telefi:poll-failures:")
 
 
-def test_a_non_transient_serve_error_raises_at_once(root):
-    watch.poll_failed(root, streak=1, transient=False, error="KeyError: 'x'", now=at(12))
+def test_a_lasting_serve_error_raises_once(root):
+    for streak in range(1, 7):
+        watch.poll_failed(root, streak=streak, transient=False, error="KeyError: 'x'", now=at(12))
     assert len(issues(root)) == 1
 
 

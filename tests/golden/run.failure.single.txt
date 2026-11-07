@@ -3,7 +3,7 @@
 <blockquote expandable>Problem: input contained a blocked command
 Problem: retry limit reached
 Spent: $0.81, 1 min
-log: C:/logs/researcher.log</blockquote>
+log: C:/⁠logs/researcher.⁠log</blockquote>
 --- keyboard
 {
  "inline_keyboard": [

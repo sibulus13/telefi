@@ -1,6 +1,7 @@
 🔵 <b>1 updates · 12:00</b>
-• 🔴 #716 seasonal study: NO RESULT
+• 🔴 seasonal study: no result
 <blockquote expandable><b>▸ 🔴 Errors (1)</b>
-#716 seasonal study: NO RESULT
+seasonal study: no result
 Run timed out with no result file; Auto Fix is on it
+Issue 716, outcome NO RESULT
 <a href="https://notion.so/card-716">Card</a></blockquote>

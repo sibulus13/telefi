@@ -210,6 +210,7 @@ def register_menu(cfg: dict, *, opener: Callable | None = None) -> dict:
 TRANSIENT_ERRORS = frozenset({"TimeoutError", "timeout", "RemoteDisconnected", "ConnectionResetError",
                               "ConnectionAbortedError", "ConnectionRefusedError", "URLError", "IncompleteRead"})
 HTTP_SERVER_ERROR_MIN = 500
+HTTP_TOO_MANY_REQUESTS = 429   # Telegram asking us to slow down: it passes on its own
 
 
 class PollTransientError(RuntimeError):
@@ -225,7 +226,7 @@ def poll_error(res: dict) -> RuntimeError:
     err = str(res.get("error"))
     cls, _, code = err.partition(":")
     code = code.strip()
-    transient = cls in TRANSIENT_ERRORS or (cls == "HTTPError" and code.isdigit() and int(code) >= HTTP_SERVER_ERROR_MIN)
+    transient = cls in TRANSIENT_ERRORS or (cls == "HTTPError" and code.isdigit() and (int(code) >= HTTP_SERVER_ERROR_MIN or int(code) == HTTP_TOO_MANY_REQUESTS))
     msg = f"getUpdates failed: {err}"
     return PollTransientError(msg, cls) if transient else RuntimeError(msg)
 

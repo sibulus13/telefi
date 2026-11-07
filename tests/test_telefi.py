@@ -103,9 +103,9 @@ def test_status_is_a_colour_dot_not_a_word():
 
 def test_sections_stay_collapsed_until_expanded():
     env = core.envelope(source="news", kind="digest", severity="info", title="Daily", insight="3 on watch",
-                        sections=[{"heading": "Watchlist", "lines": ["AG.TO sev 84"]}])
+                        sections=[{"heading": "Watchlist", "lines": ["ACME sev 84"]}])
     glance, details = render_telegram(env, buttons=False)["text"].split("<blockquote expandable>")
-    assert "AG.TO" not in glance and "AG.TO" in details
+    assert "ACME" not in glance and "ACME" in details
 
 
 def test_ids_show_only_on_problems():

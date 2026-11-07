@@ -1,9 +1,10 @@
-🟢 Research · <b>#712 ACME spread study: PURSUE</b>
+🟢 Research · <b>ACME spread study: worth pursuing</b>
 <i>Sharpe 1.4 vs QQQ B&amp;H 1.1</i>
 <blockquote expandable>Hypothesis: the spread on ACME covers costs
 Backtest: 2019-2025 · Sharpe 1.4 vs QQQ B&amp;H 1.1 · max DD -9%
 Paper: not started
-Source rules: transcribed (copied from the source)</blockquote>
+Source rules: transcribed (copied from the source)
+Issue 712, outcome PURSUE</blockquote>
 --- keyboard
 {
  "inline_keyboard": [

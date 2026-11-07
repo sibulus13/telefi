@@ -194,7 +194,12 @@
     "insight": {
       "type": "string",
       "maxLength": 300,
-      "description": "the one-line 'so what': why it matters or what to do next. Shown under the headline."
+      "description": "the plain context: what this is, where it stands and why it matters. Shown under the headline."
+    },
+    "next_step": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "what the reader should do now, in plain words. Expected on anything that asks for attention (telefi/wording.py). Shown after 'What to do:'."
     },
     "not_before": {
       "type": "string",

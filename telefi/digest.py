@@ -91,8 +91,7 @@ def collected(root: Path) -> list[dict]:
         if bad:
             core._move(p, _queue(root) / BAD_DIR)
             _log(root, "digest item quarantined", file=p.name, errors=bad[:3])
-            watch.raise_issue(root, "digest-item-quarantined", "A held message was quarantined",
-                              f"{p.name} is in spool/digest/bad", now=core.clock())
+            watch.raise_known(root, "digest-item-quarantined", detail=f"{p.name} is in spool/digest/bad", now=core.clock())
             continue
         items.append(env)
     return sorted(items, key=lambda e: (e["created_at"], e["id"]))
@@ -352,8 +351,7 @@ def _record_failure(root: Path, errors: list, day: str, now: datetime) -> None:
                                         "next": (now + timedelta(minutes=wait)).isoformat(timespec="seconds")})
     _log(root, "digest send failed", attempt=n, retry_in_min=wait, errors=errors)
     if n >= DIGEST_FAILURE_LIMIT:
-        watch.raise_issue(root, "digest-send-failed", "TeleFi could not send the batch message",
-                          f"{n} failed attempts today: {errors[:1]}", now=now, deliver_now=True)
+        watch.raise_known(root, "digest-send-failed", detail=f"{n} failed attempts today: {errors[:1]}", count=n, now=now, deliver_now=True)
 
 
 def send_if_due(cfg: dict, *, adapters: dict | None = None, spool: Path | None = None, now: datetime | None = None) -> dict | None:

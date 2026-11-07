@@ -33,6 +33,8 @@ OUTCOME_ACTIONS = {
     "BLOCKED": [("unblock", "Unblock with note", UNBLOCK_PROMPT), ("drop", "Drop")],
     "NO RESULT": [("retry", "Retry")],
 }
+OUTCOME_WORDS = {"PURSUE": "worth pursuing", "REFINE": "needs one change", "DROP": "not worth pursuing", "BLOCKED": "stuck",
+                 "NO RESULT": "no result"}
 OUTCOME_SECTION = {"PURSUE": "research", "REFINE": "research", "DROP": "research", "BLOCKED": "reviews",
                    "NO RESULT": "errors"}
 OUTCOME_KIND = {"PURSUE": ("result", "info"), "REFINE": ("review", "info"), "DROP": ("result", "info"),
@@ -52,8 +54,8 @@ def _pr_link(url: str | None) -> list[dict]:
     return _link(f"PR #{m.group(1)}" if m else "PR", url)
 
 
-def _view(*, dot, headline, insight="", details=(), links=(), actions=(), bullet=None, section, kind, severity) -> dict:
-    return {"dot": dot, "headline": headline, "insight": insight, "details": list(details)[:MAX_DETAILS],
+def _view(*, dot, headline, insight="", next_step="", details=(), links=(), actions=(), bullet=None, section, kind, severity) -> dict:
+    return {"dot": dot, "headline": headline, "insight": insight, "next_step": next_step, "details": list(details)[:MAX_DETAILS],
             "links": list(links)[:MAX_LINKS], "actions": list(actions), "bullet": bullet or headline,
             "section": section, "kind": kind, "severity": severity}
 
@@ -93,10 +95,11 @@ def _research(f: dict) -> dict:
         lines.append(f"Source rules: {f['source_rules']}")
     if f.get("why"):
         lines.append(f"Why: {f['why']}")
-    headline = f"#{int(f['issue'])} {f['name']}: {outcome}"
+    headline = f"{f['name']}: {OUTCOME_WORDS[outcome]}"
+    lines.append(f"Issue {int(f['issue'])}, outcome {outcome}")
     ln = f.get("links", {})
     kind, severity = OUTCOME_KIND[outcome]
-    return _view(dot=OUTCOME_DOT[outcome], headline=headline, insight=f.get("insight") or _backtest_line(bt), details=lines,
+    return _view(dot=OUTCOME_DOT[outcome], headline=headline, insight=f.get("insight") or _backtest_line(bt), next_step=f.get("next_step", ""), details=lines,
                  links=_link("Card", ln.get("card")) + _pr_link(ln.get("pr")) + _link("Result", ln.get("result")),
                  actions=[_act(a) for a in OUTCOME_ACTIONS[outcome]],
                  bullet=headline + (f", {f['bullet_note']}" if f.get("bullet_note") else ""),

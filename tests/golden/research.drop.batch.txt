@@ -1,7 +1,7 @@
 🔵 <b>1 updates · 12:00</b>
-• 🔬 #710 breakout study: DROP
+• 🔬 breakout study: not worth pursuing
 <blockquote expandable><b>▸ 🔬 Research (1)</b>
-#710 breakout study: DROP
+breakout study: not worth pursuing
 Sharpe 0.2 vs QQQ B&amp;H 1.1; no edge after costs
 Backtest: 2019-2025 · Sharpe 0.2 vs QQQ B&amp;H 1.1 · max DD -31%
 <a href="https://notion.so/card-710">Card</a></blockquote>

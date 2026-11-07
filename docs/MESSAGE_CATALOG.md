@@ -20,6 +20,21 @@ buttons, action buttons) stays in `telefi/render.py`'s docstring; lanes and timi
 - Facts are validated per template (JSON Schema in `telefi/templates/`); unknown or missing facts reject the
   envelope with a clear error, never a half-rendered message.
 
+## Plain-message standard
+Anything that asks for attention (kind `blocker`, `failure`, `review`, or severity `warn` and above) must let the
+reader act from the message alone:
+- `title`: what happened, by the everyday name of the thing.
+- `insight`: the context: what this is, where it stands, why it matters.
+- `next_step`: what to do now, shown after **What to do:**. A batch keeps both in full.
+- No exit codes, error class names, file paths, code names, internal status labels or a bare id on those lines.
+  Technical detail belongs in `body`, `sections` and `evidence`, which stay collapsed.
+
+Telegram makes web addresses, commands and @names live by itself, so the renderer puts an invisible word joiner
+after each trigger in outside text. The words read the same; a real link belongs in `evidence`, as a button.
+
+`python -m telefi check-wording` judges what was really sent; `--stdin` judges a JSON list of envelopes, for a
+sender's own test. The rules are in `telefi/wording.py`.
+
 ## Research verdict (`research.verdict`)
 One template, five outcomes; the outcome picks the dot, the insight wording and the buttons.
 
@@ -32,8 +47,9 @@ One template, five outcomes; the outcome picks the dot, the insight wording and 
 | NO RESULT | 🟠 | what broke (timed out / no result file / unreadable) and that Auto Fix is on it | Retry |
 
 ```
-🟡 Research · #712 ACME spread study: REFINE
+🟡 Research · ACME spread study: needs one change
 Edge holds only at low volume; re-run with higher costs
+What to do: decide whether the change is worth another run
 ▸ details
   Hypothesis: the spread on ACME covers costs
   Backtest: 2019-2025 · Sharpe 0.9 vs QQQ B&H 1.1 · max DD -9%
@@ -43,8 +59,9 @@ Edge holds only at low volume; re-run with higher costs
 [ Card ] [ PR #45 ] [ Result ]
 [ Re-run ] [ Hold ]
 ```
-Batch bullet: `🔬 #712 ACME spread study: REFINE, higher costs next`.
-Facts: `issue, name, outcome, insight, hypothesis, backtest{metric, value required; period, benchmark, benchmark_value, ci, max_dd optional},
+Batch bullet: `🔬 ACME spread study: needs one change, higher costs next`.
+The headline uses plain outcome words; the issue number and the outcome code sit in the details.
+Facts: `issue, name, outcome, insight, next_step, hypothesis, backtest{metric, value required; period, benchmark, benchmark_value, ci, max_dd optional},
 paper{status, days, return, benchmark_return}, source_rules, why, links{card, pr, result}`.
 
 ## Agent run (`run.receipt`, `run.failure`)

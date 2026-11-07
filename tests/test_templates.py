@@ -244,7 +244,7 @@ def test_a_refine_verdict_batches_into_the_research_section():
 
 
 def test_the_batch_uses_the_templates_own_bullet():
-    assert "• 🔬 #712 ACME spread study: REFINE, higher costs next" in _batch(make("research.refine"))
+    assert "• 🔬 ACME spread study: needs one change, higher costs next" in _batch(make("research.refine"))
 
 
 def test_green_and_blue_verdicts_are_silent_others_sound():

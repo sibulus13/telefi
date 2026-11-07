@@ -1,6 +1,7 @@
-🔵 Research · <b>#703 index timing study: DROP</b>
+🔵 Research · <b>index timing study: not worth pursuing</b>
 <i>H1 alpha vs SPY +1.10 pp/yr, interval spans zero</i>
-<blockquote expandable>Backtest: 2010-2020 · H1 sample alpha +1.10 pp/yr vs SPY 95% CI -3.20 to +5.40</blockquote>
+<blockquote expandable>Backtest: 2010-2020 · H1 sample alpha +1.10 pp/yr vs SPY 95% CI -3.20 to +5.40
+Issue 703, outcome DROP</blockquote>
 --- keyboard
 {
  "inline_keyboard": [

@@ -63,7 +63,7 @@ Template: `examples/commands.example.json`. Commands are `/<app> <verb> [args]`.
 
 Template: `examples/envelope.example.json`. Required: `schema`, `id`, `source`, `kind`
 (`failure`, `blocker`, `review`, `digest`, `result`, `info`), `severity` (`info`, `warn`, `error`,
-`critical`), `title`, `created_at`. Optional: `insight` (the one-line "so what"), `body` (collapsed
+`critical`), `title`, `created_at`. Optional: `insight` (the plain context), `next_step` (what to do now), `body` (collapsed
 details), `evidence` (`ref`, `log_path`, `links[]` -> URL buttons), `actions[]` (buttons; `input`
 asks for a typed note first), `dedup_key`, `dedup_window_min`, `not_before` (hold until then),
 `delivery` (`now` default, or `batch`: if it would reach Telegram, hold it for the next batch window; see below).

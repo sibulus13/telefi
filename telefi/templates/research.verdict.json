@@ -129,6 +129,10 @@
           "pattern": "^https?://"
         }
       }
+    },
+    "next_step": {
+      "type": "string",
+      "maxLength": 200
     }
   }
 }

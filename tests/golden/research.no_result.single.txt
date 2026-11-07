@@ -1,5 +1,6 @@
-🟠 Research · <b>#716 seasonal study: NO RESULT</b>
+🟠 Research · <b>seasonal study: no result</b>
 <i>Run timed out with no result file; Auto Fix is on it</i>
+<blockquote expandable>Issue 716, outcome NO RESULT</blockquote>
 --- keyboard
 {
  "inline_keyboard": [

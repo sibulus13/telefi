@@ -45,7 +45,7 @@ def test_the_noon_batch_retries_with_backoff_and_is_delivered_once_after_recover
 def test_the_hub_raises_one_self_watch_error_and_one_critical_after_two_hours(make_hub):
     hub = outage_hub(make_hub)
     texts = [plain(s.text) for s in hub.telegram.sends]
-    assert sum("could not send the batch message" in t for t in texts) == 1       # once, however many retries
+    assert sum("summary failed to send" in t for t in texts) == 1       # once, however many retries
     assert sum("Telegram sends have failed for 2 hours" in t for t in texts) == 1
     critical = next(s for s in hub.telegram.sends if "failed for 2 hours" in s.text)
     assert critical.at >= utc(14, 0) and not critical.silent                      # not before two hours of failing

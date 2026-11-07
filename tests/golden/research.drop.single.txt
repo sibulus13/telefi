@@ -1,6 +1,7 @@
-🔵 Research · <b>#710 breakout study: DROP</b>
+🔵 Research · <b>breakout study: not worth pursuing</b>
 <i>Sharpe 0.2 vs QQQ B&amp;H 1.1; no edge after costs</i>
-<blockquote expandable>Backtest: 2019-2025 · Sharpe 0.2 vs QQQ B&amp;H 1.1 · max DD -31%</blockquote>
+<blockquote expandable>Backtest: 2019-2025 · Sharpe 0.2 vs QQQ B&amp;H 1.1 · max DD -31%
+Issue 710, outcome DROP</blockquote>
 --- keyboard
 {
  "inline_keyboard": [

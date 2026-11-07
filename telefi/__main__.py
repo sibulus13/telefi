@@ -19,7 +19,7 @@ import time
 import traceback
 from pathlib import Path
 
-from telefi import core, digest, hub, inbound, schema, simulate, watch
+from telefi import core, digest, hub, inbound, schema, simulate, watch, wording
 from telefi.render import render_plain
 from telefi.samples import samples
 
@@ -137,6 +137,10 @@ def main(argv=None) -> int:
     sim.add_argument("scenario")
     v = sub.add_parser("validate")
     v.add_argument("file")
+    w = sub.add_parser("check-wording")
+    w.add_argument("--since", default=None)
+    w.add_argument("--outbox", type=Path, default=None)
+    w.add_argument("--stdin", action="store_true")
     sc = sub.add_parser("schema")
     sc.add_argument("name", choices=schema.SCHEMAS)
     a = ap.parse_args(argv)
@@ -162,6 +166,8 @@ def main(argv=None) -> int:
         bad = schema.validate(obj, name)
         print("\n".join(bad) or f"valid {name}")
         return 1 if bad else 0
+    if a.cmd == "check-wording":
+        return wording.check_stdin(sys.stdin.read()) if a.stdin else wording.check_outbox(a.outbox, a.since)
     if a.cmd == "schema":
         print(json.dumps(schema.load(a.name), indent=2))
         return 0

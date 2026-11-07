@@ -1,6 +1,7 @@
-🟡 Research · <b>#714 basket study: BLOCKED</b>
+🟡 Research · <b>basket study: stuck</b>
 <i>Missing data: ticks 2019-2022; cheapest unblock is a one-month sample</i>
-<blockquote expandable>Hypothesis: the basket beats cash after costs</blockquote>
+<blockquote expandable>Hypothesis: the basket beats cash after costs
+Issue 714, outcome BLOCKED</blockquote>
 --- keyboard
 {
  "inline_keyboard": [

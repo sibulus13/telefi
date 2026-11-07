@@ -1,10 +1,11 @@
-🟡 Research · <b>#712 ACME spread study: REFINE</b>
+🟡 Research · <b>ACME spread study: needs one change</b>
 <i>Edge holds only at low volume; re-run with higher costs</i>
 <blockquote expandable>Hypothesis: the spread on ACME covers costs
 Backtest: 2019-2025 · Sharpe 0.9 vs QQQ B&amp;H 1.1 · max DD -9%
 Paper: not started
 Source rules: transcribed (copied from the source)
-Why: edge disappears at realistic fill rate</blockquote>
+Why: edge disappears at realistic fill rate
+Issue 712, outcome REFINE</blockquote>
 --- keyboard
 {
  "inline_keyboard": [

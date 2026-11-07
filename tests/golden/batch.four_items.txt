@@ -1,7 +1,7 @@
 🔵 <b>4 updates · 12:00</b>
 • 🔴 Researcher run failed: Shell refused the input; Auto Fix filed a fix
-• 🔬 #712 ACME spread study: REFINE, higher costs next
-• 🔬 #710 breakout study: DROP
+• 🔬 ACME spread study: needs one change, higher costs next
+• 🔬 breakout study: not worth pursuing
 • ✅ Price Watch: 8 items priced, 0 alerts
 <blockquote expandable><b>▸ 🔴 Errors (1)</b>
 Researcher run failed
@@ -9,12 +9,12 @@ Shell refused the input; Auto Fix filed a fix
 Problem: input contained a blocked command
 <a href="https://example.com/log/9">Log</a></blockquote>
 <blockquote expandable><b>▸ 🔬 Research (2)</b>
-#712 ACME spread study: REFINE
+ACME spread study: needs one change
 Edge holds only at low volume; re-run with higher costs
 Hypothesis: the spread on ACME covers costs
 <a href="https://notion.so/card-712">Card</a>
 
-#710 breakout study: DROP
+breakout study: not worth pursuing
 Sharpe 0.2 vs QQQ B&amp;H 1.1; no edge after costs
 Backtest: 2019-2025 · Sharpe 0.2 vs QQQ B&amp;H 1.1 · max DD -31%
 <a href="https://notion.so/card-710">Card</a></blockquote>

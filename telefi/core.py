@@ -157,7 +157,7 @@ def write_state(root: Path, name: str, data: dict) -> None:
 # ---------------------------------------------------------------- publish (producer side)
 
 
-def envelope(*, source: str, kind: str, severity: str, title: str, insight: str = "", body: str = "",
+def envelope(*, source: str, kind: str, severity: str, title: str, insight: str = "", next_step: str = "", body: str = "",
              evidence: dict | None = None, actions: list | None = None, dedup_key: str | None = None,
              not_before: str | None = None, dedup_window_min: float | None = None,
              sections: list[dict] | None = None, silent: bool | None = None,
@@ -166,6 +166,8 @@ def envelope(*, source: str, kind: str, severity: str, title: str, insight: str 
            "kind": kind, "severity": severity, "title": title[:200], "body": body[:3500], "created_at": now_iso()}
     if insight:
         env["insight"] = insight[:300]
+    if next_step:
+        env["next_step"] = next_step[:200]
     if evidence:
         env["evidence"] = evidence
     if actions:
