@@ -120,8 +120,12 @@ def _serve(interval: float) -> int:
 def _waiting(a) -> int:
     root = core.spool_root(core.load_config())
     if a.action == "open":
-        item = waiting.open_item(root, key=a.key or f"{a.source}:{a.title}", source=a.source, title=a.title,
-                                 action=a.do, link=a.link)
+        try:
+            item = waiting.open_item(root, key=a.key or f"{a.source}:{a.title}", source=a.source, title=a.title,
+                                     action=a.do, link=a.link, since=a.since)
+        except ValueError as ex:
+            print(ex)
+            return 1
         print(f"waiting since {item['opened_at']}: {item['key']}")
         return 0
     if a.action == "close":
@@ -167,6 +171,7 @@ def main(argv=None) -> int:
     wo.add_argument("--action", dest="do", default="", help="the one thing the owner should do")
     wo.add_argument("--link", default="")
     wo.add_argument("--key", default="", help="default: source:title")
+    wo.add_argument("--since", default="", help="ISO time it started waiting; default: now")
     wc = wt.add_parser("close")
     wc.add_argument("key")
     wc.add_argument("--reason", default="closed by hand")

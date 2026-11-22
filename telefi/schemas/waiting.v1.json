@@ -17,12 +17,12 @@
         "additionalProperties": false,
         "required": ["key", "source", "title", "action", "link", "opened_at", "last_seen_at", "seen"],
         "properties": {
-          "key": {"type": "string", "maxLength": 240, "description": "the envelope's dedup_key, or source:title"},
+          "key": {"type": "string", "maxLength": 260, "description": "the envelope's dedup_key, or source:title"},
           "source": {"type": "string", "maxLength": 40},
           "title": {"type": "string", "maxLength": 200},
           "action": {"type": "string", "maxLength": 200, "description": "the one thing the owner should do; may be empty"},
-          "link": {"type": "string", "maxLength": 400, "description": "where to do it; may be empty"},
-          "opened_at": {"type": "string", "maxLength": 40, "description": "when it was first seen; a repeat never moves it"},
+          "link": {"type": "string", "maxLength": 2048, "description": "where to do it; may be empty"},
+          "opened_at": {"type": "string", "maxLength": 40, "description": "when it started waiting: the first envelope's created_at, or the collector's --since; a repeat never moves it"},
           "last_seen_at": {"type": "string", "maxLength": 40},
           "seen": {"type": "number", "description": "how many times a sender reported it"}
         }

@@ -70,7 +70,6 @@ def test_the_json_list_matches_its_published_schema(root, capsys):
 def test_an_unknown_waiting_value_is_rejected(root):
     with pytest.raises(ValueError, match="waiting"):
         _send(root, "maybe")
-    assert waiting.items(root) == []
 
 
 def test_the_command_line_opens_and_closes_without_a_hub(root, capsys):
@@ -84,3 +83,56 @@ def test_the_command_line_opens_and_closes_without_a_hub(root, capsys):
 def test_closing_an_unknown_key_fails(root):
     assert main(["waiting", "close", "nobody:nothing"]) == 1
 
+
+
+class FlakyAdapter(MockAdapter):
+    """Fails its first send, then delivers."""
+
+    def __init__(self, name):
+        super().__init__(name)
+        self.calls = 0
+
+    def send(self, env, **kw):
+        self.calls += 1
+        return {"ok": False, "error": "down"} if self.calls == 1 else super().send(env, **kw)
+
+
+def test_a_delivery_retry_counts_the_item_once(root, monkeypatch):
+    env = core.envelope(source="builder", kind="failure", severity="error", title="Deploy needs approval", dedup_key=KEY)
+    env["waiting"] = "open"
+    core.publish(env, spool=root)
+    adapters = {"telegram": FlakyAdapter("telegram"), "file": FlakyAdapter("file")}
+    core.drain(MOCK, adapters=adapters, spool=root)
+    later = core.clock() + AN_HOUR
+    monkeypatch.setattr(core, "clock", lambda: later)
+    core.drain(MOCK, adapters=adapters, spool=root)
+    assert [i["seen"] for i in waiting.items(root)] == [1]
+
+
+def test_an_item_ages_from_when_its_envelope_was_made(root, monkeypatch):
+    env = core.envelope(source="builder", kind="failure", severity="error", title="Deploy needs approval", dedup_key=KEY)
+    env["waiting"] = "open"
+    made = env["created_at"]
+    core.publish(env, spool=root)
+    later = core.clock() + AN_HOUR
+    monkeypatch.setattr(core, "clock", lambda: later)
+    core.drain(MOCK, adapters={"telegram": MockAdapter("telegram"), "file": MockAdapter("file")}, spool=root)
+    assert waiting.items(root)[0]["opened_at"] == made
+
+
+def test_overlong_fields_still_give_a_valid_list(root, capsys):
+    assert main(["waiting", "open", "--source", "newsdesk", "--title", "t" * 500, "--action", "a" * 500,
+                 "--link", "https://example.com/" + "x" * 900]) == 0
+    capsys.readouterr()
+    main(["waiting", "list", "--json"])
+    assert schema.validate(json.loads(capsys.readouterr().out), "waiting.v1") == []
+
+
+def test_a_collector_can_say_since_when_it_has_waited(root):
+    main(["waiting", "open", "--source", "newsdesk", "--title", "Pull request 12 waits", "--since", "2026-10-01T09:00:00+00:00"])
+    assert waiting.items(root)[0]["opened_at"] == "2026-10-01T09:00:00+00:00"
+
+
+def test_a_since_that_is_not_a_time_is_refused(root):
+    assert main(["waiting", "open", "--source", "newsdesk", "--title", "Pull request 12 waits", "--since", "last week"]) == 1
+    assert waiting.items(root) == []
