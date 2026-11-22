@@ -8,6 +8,7 @@
     python -m telefi simulate <scenario.json>  run a day on a fake clock and print what was sent and when
     python -m telefi validate <file.json>  check an envelope or inbound event against its schema
     python -m telefi schema <name>         print a published schema (envelope.v1 | inbound.v1 | hub_config.v1)
+    python -m telefi waiting list|open|close   what is stopped until the owner acts (telefi/waiting.py)
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ import time
 import traceback
 from pathlib import Path
 
-from telefi import core, digest, hub, inbound, schema, simulate, watch, wording
+from telefi import core, digest, hub, inbound, schema, simulate, waiting, watch, wording
 from telefi.render import render_plain
 from telefi.samples import samples
 
@@ -116,6 +117,21 @@ def _serve(interval: float) -> int:
             time.sleep(wait)
 
 
+def _waiting(a) -> int:
+    root = core.spool_root(core.load_config())
+    if a.action == "open":
+        item = waiting.open_item(root, key=a.key or f"{a.source}:{a.title}", source=a.source, title=a.title,
+                                 action=a.do, link=a.link)
+        print(f"waiting since {item['opened_at']}: {item['key']}")
+        return 0
+    if a.action == "close":
+        item = waiting.close_item(root, a.key, reason=a.reason)
+        print(f"closed: {a.key}" if item else f"nothing open with key {a.key}")
+        return 0 if item else 1
+    print(json.dumps(waiting.listing(root), indent=2) if a.json else waiting.render(root))
+    return 0
+
+
 def main(argv=None) -> int:
     if sys.stdout is not None:                    # None under pythonw.exe (no console)
         sys.stdout.reconfigure(encoding="utf-8")   # Windows consoles default to cp1252
@@ -143,6 +159,17 @@ def main(argv=None) -> int:
     w.add_argument("--stdin", action="store_true")
     sc = sub.add_parser("schema")
     sc.add_argument("name", choices=schema.SCHEMAS)
+    wt = sub.add_parser("waiting").add_subparsers(dest="action", required=True)
+    wt.add_parser("list").add_argument("--json", action="store_true", help="print the telefi.waiting.v1 contract")
+    wo = wt.add_parser("open")
+    wo.add_argument("--source", required=True)
+    wo.add_argument("--title", required=True)
+    wo.add_argument("--action", dest="do", default="", help="the one thing the owner should do")
+    wo.add_argument("--link", default="")
+    wo.add_argument("--key", default="", help="default: source:title")
+    wc = wt.add_parser("close")
+    wc.add_argument("key")
+    wc.add_argument("--reason", default="closed by hand")
     a = ap.parse_args(argv)
 
     if a.cmd == "drain":
@@ -168,6 +195,8 @@ def main(argv=None) -> int:
         return 1 if bad else 0
     if a.cmd == "check-wording":
         return wording.check_stdin(sys.stdin.read()) if a.stdin else wording.check_outbox(a.outbox, a.since)
+    if a.cmd == "waiting":
+        return _waiting(a)
     if a.cmd == "schema":
         print(json.dumps(schema.load(a.name), indent=2))
         return 0

@@ -20,7 +20,7 @@ from datetime import datetime, time, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from telefi import logs, messages, schema
+from telefi import logs, messages, schema, waiting
 from telefi.adapters import build_adapters
 from telefi.render import HUB_SOURCE
 
@@ -454,5 +454,7 @@ def drain(cfg: dict, *, adapters: dict | None = None, spool: Path | None = None,
                     rec["retry_in_s"] = wait
         append_jsonl(outbox_path(root), rec)
         records.append(rec)
+        if not bad and "retry_in_s" not in rec:      # accepted and settled: a retry would count it twice
+            waiting.observe(root, env)
     write_state(root, "attempts.json", attempts)
     return records

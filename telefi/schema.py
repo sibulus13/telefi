@@ -14,7 +14,7 @@ from telefi import messages
 
 SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
-SCHEMAS = ("envelope.v1", "inbound.v1", "hub_config.v1", "commands.v1")
+SCHEMAS = ("envelope.v1", "inbound.v1", "hub_config.v1", "commands.v1", "waiting.v1")
 
 _TYPES = {"object": dict, "array": list, "string": str, "boolean": bool}
 
