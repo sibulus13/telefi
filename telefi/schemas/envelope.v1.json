@@ -182,6 +182,14 @@
         }
       }
     },
+    "waiting": {
+      "type": "string",
+      "enum": [
+        "open",
+        "closed"
+      ],
+      "description": "open: this is stopped until the owner acts, so it goes on the waiting list (one row per dedup_key, with its age). closed: the same key is resolved"
+    },
     "dedup_key": {
       "type": "string",
       "maxLength": 200,

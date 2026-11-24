@@ -170,7 +170,10 @@ Routine messages can wait for a batch at set times, and only critical messages b
 
 ## Reference
 
-- Contracts: `python -m telefi schema envelope.v1 | inbound.v1 | hub_config.v1 | commands.v1`
+- Contracts: `python -m telefi schema envelope.v1 | inbound.v1 | hub_config.v1 | commands.v1 | waiting.v1`
+- Waiting list: an envelope with `"waiting": "open"` adds a row to the list of things stopped until you act;
+  `"waiting": "closed"` with the same `dedup_key` removes it. `python -m telefi waiting list [--json]` prints it,
+  oldest first, for a dashboard or a notes database to show.
 - [Configuration reference](docs/CONFIGURATION.md) · [Design](docs/DESIGN.md) · [Similar projects](docs/LANDSCAPE.md)
 
 ## License

@@ -45,6 +45,7 @@ flowchart TD
 | `digest.py` | batches: collect, claim and send held messages |
 | `messages.py` | message templates and their facts |
 | `watch.py` | the hub's self-watch heartbeat |
+| `waiting.py` | the waiting list: what is stopped until the owner acts, one row per `dedup_key`, with its age |
 | `simulate.py` | replay a timed scenario against a mock hub |
 | `compat.py` | `TelegramChannel.send(title, body, reply_markup=...)` for simple direct sends |
 

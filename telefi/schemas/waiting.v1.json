@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "telefi.waiting.v1",
+  "title": "The waiting list: what is stopped until the owner acts",
+  "description": "Printed by `python -m telefi waiting list --json`. Views read this; none keeps its own list.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "at", "items"],
+  "properties": {
+    "schema": {"type": "string", "enum": ["telefi.waiting.v1"]},
+    "at": {"type": "string", "maxLength": 40, "description": "when the list was read, ISO time in UTC"},
+    "items": {
+      "type": "array",
+      "description": "open items, the longest-waiting first",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "source", "title", "action", "link", "opened_at", "last_seen_at", "seen"],
+        "properties": {
+          "key": {"type": "string", "maxLength": 260, "description": "the envelope's dedup_key, or source:title"},
+          "source": {"type": "string", "maxLength": 40},
+          "title": {"type": "string", "maxLength": 200},
+          "action": {"type": "string", "maxLength": 200, "description": "the one thing the owner should do; may be empty"},
+          "link": {"type": "string", "maxLength": 2048, "description": "where to do it; may be empty"},
+          "opened_at": {"type": "string", "maxLength": 40, "description": "when it started waiting: the first envelope's created_at, or the collector's --since; a repeat never moves it"},
+          "last_seen_at": {"type": "string", "maxLength": 40},
+          "seen": {"type": "number", "description": "how many times a sender reported it"}
+        }
+      }
+    }
+  }
+}
